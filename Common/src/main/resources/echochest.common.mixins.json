@@ -5,6 +5,7 @@
   "package": "fuzs.echochest.mixin",
   "refmap": "echochest.refmap.json",
   "mixins": [
+    "ItemEntityMixin"
   ],
   "client": [
     "client.SheetsMixin"

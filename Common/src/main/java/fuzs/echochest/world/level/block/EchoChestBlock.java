@@ -21,9 +21,9 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.phys.BlockHitResult;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class EchoChestBlock extends EnderChestBlock {
 
@@ -75,10 +75,18 @@ public class EchoChestBlock extends EnderChestBlock {
         return new EchoChestBlockEntity(pos, state);
     }
 
+    @Nullable
+    @Override
+    public <T extends BlockEntity> GameEventListener getListener(ServerLevel level, T blockEntity) {
+        return blockEntity instanceof EchoChestBlockEntity echoChestBlockEntity ? echoChestBlockEntity.getListener() : null;
+    }
+
     @Override
     @Nullable
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
-        return pLevel.isClientSide ? createTickerHelper(pBlockEntityType, ModRegistry.ECHO_CHEST_BLOCK_ENTITY_TYPE.get(), EchoChestBlockEntity::lidAnimateTick) : null;
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
+        return createTickerHelper(blockEntityType, ModRegistry.ECHO_CHEST_BLOCK_ENTITY_TYPE.get(), level.isClientSide ? EchoChestBlockEntity::lidAnimateTick : (level1, blockPos, blockState, blockEntity) -> {
+            blockEntity.getListener().tick(level1);
+        });
     }
 
     @Override
