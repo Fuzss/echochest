@@ -1,9 +1,0 @@
-{
-  "block.alltheheads.head": "%s Head",
-  "block.alltheheads.mob_head": "Mob Head",
-  "block.alltheheads.mob_wall_head": "Mob Wall Head",
-  "block.alltheheads.skull": "%s Skull",
-  "block.alltheheads.wall": "%s Wall",
-  "itemGroup.alltheheads": "All The Heads",
-  "itemGroup.alltheheadsvillagers": "All The Heads - Villagers"
-}
