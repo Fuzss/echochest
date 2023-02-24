@@ -2,7 +2,9 @@ package fuzs.echochest.world.level.block;
 
 import fuzs.echochest.init.ModRegistry;
 import fuzs.echochest.world.level.block.entity.EchoChestBlockEntity;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
@@ -14,6 +16,8 @@ import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EnderChestBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -25,8 +29,11 @@ import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 @SuppressWarnings("deprecation")
 public class EchoChestBlock extends EnderChestBlock {
+    private static final Component DESCRIPTION_COMPONENT = Component.translatable("block.echochest.echo_chest.description").withStyle(ChatFormatting.GOLD);
 
     public EchoChestBlock(Properties properties) {
         super(properties);
@@ -109,5 +116,10 @@ public class EchoChestBlock extends EnderChestBlock {
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
 
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
+        tooltip.add(DESCRIPTION_COMPONENT);
     }
 }

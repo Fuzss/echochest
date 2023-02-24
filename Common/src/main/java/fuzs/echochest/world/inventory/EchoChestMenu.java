@@ -96,8 +96,8 @@ public class EchoChestMenu extends AbstractContainerMenu {
         return this.container;
     }
 
-    public float getExperiencePercentage() {
-        return this.containerData.get(0) / (float) EchoChestBlockEntity.MAX_EXPERIENCE;
+    public float getExperience() {
+        return this.containerData.get(0);
     }
 
     public static boolean validBottleItem(ItemStack stack) {
