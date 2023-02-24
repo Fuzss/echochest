@@ -24,7 +24,6 @@ public class ModRegistry {
     public static final RegistryReference<BlockEntityType<EchoChestBlockEntity>> ECHO_CHEST_BLOCK_ENTITY_TYPE = REGISTRY.registerBlockEntityTypeBuilder("echo_chest", () -> ModBlockEntityTypeBuilder.of(EchoChestBlockEntity::new, ECHO_CHEST_BLOCK.get()));
     public static final RegistryReference<MenuType<EchoChestMenu>> ECHO_CHEST_MENU_TYPE = REGISTRY.registerMenuTypeSupplier("echo_chest", () -> EchoChestMenu::new);
     public static final RegistryReference<GameEvent> ITEM_TICK_GAME_EVENT = REGISTRY.register(Registry.GAME_EVENT_REGISTRY, "item_tick", () -> new GameEvent("item_tick", 8));
-    public static final RegistryReference<GameEvent> ITEM_SPAWN_GAME_EVENT = REGISTRY.register(Registry.GAME_EVENT_REGISTRY, "item_spawn", () -> new GameEvent("item_spawn", 8));
 
     public static final TagKey<GameEvent> ECHO_CHEST_CAN_LISTEN = TagKey.create(Registry.GAME_EVENT_REGISTRY, EchoChest.id("echo_chest_can_listen"));
 

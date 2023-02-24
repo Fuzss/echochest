@@ -25,6 +25,7 @@ import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings("deprecation")
 public class EchoChestBlock extends EnderChestBlock {
 
     public EchoChestBlock(Properties properties) {
@@ -84,9 +85,7 @@ public class EchoChestBlock extends EnderChestBlock {
     @Override
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        return createTickerHelper(blockEntityType, ModRegistry.ECHO_CHEST_BLOCK_ENTITY_TYPE.get(), level.isClientSide ? EchoChestBlockEntity::lidAnimateTick : (level1, blockPos, blockState, blockEntity) -> {
-            blockEntity.getListener().tick(level1);
-        });
+        return createTickerHelper(blockEntityType, ModRegistry.ECHO_CHEST_BLOCK_ENTITY_TYPE.get(), level.isClientSide ? EchoChestBlockEntity::lidAnimateTick : EchoChestBlockEntity::serverTick);
     }
 
     @Override

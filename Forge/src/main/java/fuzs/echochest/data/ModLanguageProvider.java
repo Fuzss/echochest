@@ -14,5 +14,6 @@ public class ModLanguageProvider extends LanguageProvider {
     protected void addTranslations() {
         this.add(ModRegistry.ECHO_CHEST_BLOCK.get(), "Echo Chest");
         this.add("container.echo_chest", "Echo Chest");
+        this.add("container.echo_chest.experience", "%s / %s Experience");
     }
 }

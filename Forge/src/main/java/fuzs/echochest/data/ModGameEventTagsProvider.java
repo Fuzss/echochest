@@ -15,6 +15,6 @@ public class ModGameEventTagsProvider extends GameEventTagsProvider {
 
     @Override
     protected void addTags() {
-        this.tag(ModRegistry.ECHO_CHEST_CAN_LISTEN).add(GameEvent.HIT_GROUND, ModRegistry.ITEM_TICK_GAME_EVENT.get(), ModRegistry.ITEM_SPAWN_GAME_EVENT.get());
+        this.tag(ModRegistry.ECHO_CHEST_CAN_LISTEN).add(GameEvent.ENTITY_DIE, GameEvent.HIT_GROUND, ModRegistry.ITEM_TICK_GAME_EVENT.get());
     }
 }

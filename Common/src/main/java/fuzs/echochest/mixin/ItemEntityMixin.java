@@ -12,6 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ItemEntity.class)
 abstract class ItemEntityMixin extends Entity {
+    // set this initially so newly spawned entities aren't immediately picked up
+    private int echochest$tickCooldown = 30 + this.random.nextInt(20);
 
     public ItemEntityMixin(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -20,7 +22,11 @@ abstract class ItemEntityMixin extends Entity {
     @Inject(method = "tick", at = @At("TAIL"))
     public void tick(CallbackInfo callback) {
         if (!this.isRemoved() && !this.level.isClientSide) {
-            if (this.tickCount % 40 == 0) this.gameEvent(ModRegistry.ITEM_TICK_GAME_EVENT.get());
+            if (--this.echochest$tickCooldown == 0) {
+                this.gameEvent(ModRegistry.ITEM_TICK_GAME_EVENT.get());
+                // add randomness, since only a single game event seems to be processed per listener per tick
+                this.echochest$tickCooldown = 30 + this.random.nextInt(20);
+            }
         }
     }
 }
