@@ -4,17 +4,11 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.echochest.EchoChest;
 import fuzs.echochest.world.inventory.EchoChestMenu;
-import fuzs.echochest.world.level.block.entity.EchoChestBlockEntity;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.resources.language.LanguageInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-
-import java.util.Locale;
-import java.util.regex.Pattern;
 
 public class EchoChestScreen extends AbstractContainerScreen<EchoChestMenu> {
     private static final ResourceLocation CONTAINER_BACKGROUND = EchoChest.id("textures/gui/container/echo_chest.png");
@@ -38,7 +32,7 @@ public class EchoChestScreen extends AbstractContainerScreen<EchoChestMenu> {
         this.renderBackground(poseStack);
         super.render(poseStack, mouseX, mouseY, partialTick);
         if (this.isHovering(21, 29, 12, 40, mouseX, mouseY)) {
-            this.renderTooltip(poseStack, Component.translatable("container.echo_chest.experience", formatStackSize(this.menu.getExperience()), formatStackSize(EchoChestBlockEntity.MAX_EXPERIENCE)), mouseX, mouseY);
+            this.renderTooltip(poseStack, Component.translatable("container.echo_chest.experience", (int) (this.menu.getExperiencePercentage() * 100.0F)), mouseX, mouseY);
         } else {
             this.renderTooltip(poseStack, mouseX, mouseY);
         }
@@ -50,23 +44,7 @@ public class EchoChestScreen extends AbstractContainerScreen<EchoChestMenu> {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, CONTAINER_BACKGROUND);
         this.blit(poseStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
-        int height = (int) (this.menu.getExperience() / (float) EchoChestBlockEntity.MAX_EXPERIENCE * 40.0F);
+        int height = (int) (this.menu.getExperiencePercentage() * 40.0F);
         this.blit(poseStack, this.leftPos + 21, this.topPos + 29 + 40 - height, 177, 1 + 40 - height, 12, height);
-    }
-
-    private static String formatStackSize(int stackSize) {
-        String value = String.format(getCurrentLocale(), "%,d", stackSize);
-        // fix a weird issue where a bunch of locales use an odd char Minecraft cannot render as separator
-        if (!Pattern.compile("\\p{Punct}").matcher(value).find()) {
-            value = value.replaceAll("\\D", ",");
-        }
-        return value;
-    }
-
-    private static Locale getCurrentLocale() {
-        LanguageInfo language = Minecraft.getInstance().getLanguageManager().getSelected();
-        String[] code = language.getCode().split("_");
-        // seems to simply return an english locale if code is invalid, so that's ok
-        return new Locale(code[0], code[1]);
     }
 }

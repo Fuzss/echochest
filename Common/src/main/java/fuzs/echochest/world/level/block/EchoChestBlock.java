@@ -79,7 +79,7 @@ public class EchoChestBlock extends EnderChestBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> GameEventListener getListener(ServerLevel level, T blockEntity) {
-        return blockEntity instanceof EchoChestBlockEntity echoChestBlockEntity ? echoChestBlockEntity.getListener() : null;
+        return blockEntity instanceof EchoChestBlockEntity echoChestBlockEntity ? echoChestBlockEntity : null;
     }
 
     @Override

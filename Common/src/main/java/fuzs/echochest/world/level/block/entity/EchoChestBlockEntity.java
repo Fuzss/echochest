@@ -1,16 +1,13 @@
 package fuzs.echochest.world.level.block.entity;
 
-import com.mojang.serialization.Dynamic;
-import fuzs.echochest.EchoChest;
 import fuzs.echochest.init.ModRegistry;
 import fuzs.echochest.world.inventory.EchoChestMenu;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.particles.VibrationParticleOption;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
@@ -32,6 +29,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ClipBlockStateContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EnderChestBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
@@ -40,12 +38,16 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.BlockPositionSource;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.gameevent.GameEventListener;
+import net.minecraft.world.level.gameevent.PositionSource;
 import net.minecraft.world.level.gameevent.vibrations.VibrationListener;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.stream.IntStream;
 
-public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyContainer, VibrationListener.VibrationListenerConfig {
+public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyContainer, GameEventListener, VibrationListener.VibrationListenerConfig {
     public static final String TAG_EXPERIENCE = "Experience";
     public static final MutableComponent CONTAINER_TITLE = Component.translatable("container.echo_chest");
     public static final int CONTAINER_SIZE = 25;
@@ -67,7 +69,6 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
             if (index == 0) {
                 EchoChestBlockEntity.this.experience = value;
             }
-
         }
 
         @Override
@@ -75,13 +76,13 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
             return 1;
         }
     };
-    private VibrationListener listener;
+    private final BlockPositionSource blockPosSource;
     private int experience;
 
     public EchoChestBlockEntity(BlockPos blockPos, BlockState blockState) {
         super(ModRegistry.ECHO_CHEST_BLOCK_ENTITY_TYPE.get(), blockPos, blockState);
         this.setItems(NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY));
-        this.listener = new VibrationListener(new BlockPositionSource(this.worldPosition), 8, this, null, 0.0F, 0);
+        this.blockPosSource = new BlockPositionSource(this.worldPosition);
         this.allSlots = IntStream.range(0, this.getContainerSize()).toArray();
         this.inventorySlots = IntStream.range(1, this.getContainerSize()).toArray();
         this.openersCounter = new EchoChestOpenersCounter(this);
@@ -112,11 +113,10 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, EchoChestBlockEntity blockEntity) {
-        blockEntity.getListener().tick(level);
         if (blockEntity.experience >= EXPERIENCE_PER_BOTTLE) {
-            ItemStack stack = blockEntity.getItem(0).copy();
-            if (EchoChestMenu.validBottleItem(stack) && HopperBlockEntity.addItem(null, blockEntity, new ItemStack(Items.EXPERIENCE_BOTTLE), null).isEmpty()) {
+            if (EchoChestMenu.validBottleItem(blockEntity.getItem(0)) && HopperBlockEntity.addItem(null, blockEntity, new ItemStack(Items.EXPERIENCE_BOTTLE), null).isEmpty()) {
                 blockEntity.extractExperienceBottle();
+                ItemStack stack = blockEntity.getItem(0).copy();
                 stack.shrink(1);
                 blockEntity.setItem(0, stack);
             }
@@ -130,11 +130,6 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
         if (!this.tryLoadLootTable(tag)) {
             ContainerHelper.loadAllItems(tag, this.getItems());
         }
-        if (tag.contains("listener", Tag.TAG_COMPOUND)) {
-            VibrationListener.codec(this).parse(new Dynamic<>(NbtOps.INSTANCE, tag.getCompound("listener"))).resultOrPartial(EchoChest.LOGGER::error).ifPresent((vibrationListener) -> {
-                this.listener = vibrationListener;
-            });
-        }
         this.experience = tag.getInt(TAG_EXPERIENCE);
     }
 
@@ -145,9 +140,6 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
         if (!this.trySaveLootTable(tag)) {
             ContainerHelper.saveAllItems(tag, this.getItems(), true);
         }
-        VibrationListener.codec(this).encodeStart(NbtOps.INSTANCE, this.listener).resultOrPartial(EchoChest.LOGGER::error).ifPresent((tagx) -> {
-            tag.put("listener", tagx);
-        });
         tag.putInt(TAG_EXPERIENCE, this.experience);
     }
 
@@ -175,10 +167,6 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
         if (!this.remove) {
             this.openersCounter.recheckOpeners(this.getLevel(), this.getBlockPos(), this.getBlockState());
         }
-    }
-
-    public VibrationListener getListener() {
-        return this.listener;
     }
 
     @Override
@@ -228,22 +216,7 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
 
     @Override
     public void onSignalReceive(ServerLevel level, GameEventListener listener, BlockPos sourcePos, GameEvent gameEvent, @Nullable Entity sourceEntity, @Nullable Entity projectileOwner, float distance) {
-        if (gameEvent == GameEvent.ENTITY_DIE) {
-            if (sourceEntity instanceof LivingEntity livingEntity) {
-                if (this.canAcceptExperience() && !livingEntity.wasExperienceConsumed()) {
-                    int experienceReward = livingEntity.getExperienceReward();
-                    if (livingEntity.shouldDropExperience() && experienceReward > 0) {
-                        this.acceptExperience(experienceReward);
-                    }
 
-                    livingEntity.skipDropExperience();
-                    animate(this.level, this.getBlockPos(), this.getBlockState(), this.openersCounter);
-                }
-            }
-        } else if (sourceEntity instanceof ItemEntity item && !item.isRemoved()) {
-            HopperBlockEntity.addItem(this, item);
-            animate(this.level, this.getBlockPos(), this.getBlockState(), this.openersCounter);
-        }
     }
 
     private static void animate(Level level, BlockPos pos, BlockState state, EchoChestOpenersCounter openersCounter) {
@@ -251,11 +224,6 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
         if (!state.getValue(EnderChestBlock.WATERLOGGED)) {
             level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundEvents.DEEPSLATE_BRICKS_BREAK, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.2F + 0.8F);
         }
-    }
-
-    @Override
-    public void onSignalSchedule() {
-        this.setChanged();
     }
 
     @Override
@@ -277,5 +245,79 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     @Override
     public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
         return index != 0;
+    }
+
+    @Override
+    public PositionSource getListenerSource() {
+        return this.blockPosSource;
+    }
+
+    @Override
+    public int getListenerRadius() {
+        return 8;
+    }
+
+    @Override
+    public boolean handleGameEvent(ServerLevel level, GameEvent.Message eventMessage) {
+        GameEvent gameEvent = eventMessage.gameEvent();
+        GameEvent.Context context = eventMessage.context();
+        if (!this.isValidVibration(gameEvent, context)) {
+            return false;
+        } else {
+            Optional<Vec3> optional = this.getListenerSource().getPosition(level);
+            if (optional.isEmpty()) {
+                return false;
+            } else {
+                Vec3 origin = eventMessage.source();
+                Vec3 destination = optional.get();
+                if (!this.shouldListen(level, this, new BlockPos(origin), gameEvent, context)) {
+                    return false;
+                } else if (isOccluded(level, origin, destination)) {
+                    return false;
+                } else if (this.onSignalReceive(level, gameEvent, context, origin, destination)) {
+                    animate(this.level, this.getBlockPos(), this.getBlockState(), this.openersCounter);
+                    int travelTimeInTicks = Mth.floor(origin.distanceTo(destination));
+                    level.sendParticles(new VibrationParticleOption(this.getListenerSource(), travelTimeInTicks), origin.x, origin.y, origin.z, 1, 0.0, 0.0, 0.0, 0.0);
+                    return true;
+                }
+                return false;
+            }
+        }
+    }
+
+    private boolean onSignalReceive(ServerLevel level, GameEvent event, GameEvent.Context context, Vec3 origin, Vec3 destination) {
+        if (event == GameEvent.ENTITY_DIE) {
+            if (context.sourceEntity() instanceof LivingEntity livingEntity) {
+                if (this.canAcceptExperience() && !livingEntity.wasExperienceConsumed()) {
+                    int experienceReward = livingEntity.getExperienceReward();
+                    if (livingEntity.shouldDropExperience() && experienceReward > 0) {
+                        this.acceptExperience(experienceReward);
+                    }
+
+                    livingEntity.skipDropExperience();
+                    return true;
+                }
+            }
+        } else if (context.sourceEntity() instanceof ItemEntity item && !item.isRemoved()) {
+            int lastCount = item.getItem().getCount();
+            return HopperBlockEntity.addItem(this, item) || lastCount != item.getItem().getCount();
+        }
+        return false;
+    }
+
+    private static boolean isOccluded(Level level, Vec3 from, Vec3 to) {
+        from = new Vec3((double)Mth.floor(from.x) + 0.5, (double)Mth.floor(from.y) + 0.5, (double)Mth.floor(from.z) + 0.5);
+        to = new Vec3((double)Mth.floor(to.x) + 0.5, (double)Mth.floor(to.y) + 0.5, (double)Mth.floor(to.z) + 0.5);
+
+        for (Direction direction : Direction.values()) {
+            Vec3 vec3 = from.relative(direction, 9.999999747378752E-6);
+            if (level.isBlockInLine(new ClipBlockStateContext(vec3, to, (blockState) -> {
+                return blockState.is(BlockTags.OCCLUDES_VIBRATION_SIGNALS);
+            })).getType() != HitResult.Type.BLOCK) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
