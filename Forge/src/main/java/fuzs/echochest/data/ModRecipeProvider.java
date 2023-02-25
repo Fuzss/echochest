@@ -4,7 +4,7 @@ import fuzs.echochest.init.ModRegistry;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeProvider;
-import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 
@@ -18,9 +18,13 @@ public class ModRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildCraftingRecipes(Consumer<FinishedRecipe> recipeConsumer) {
-        ShapelessRecipeBuilder.shapeless(ModRegistry.ECHO_CHEST_BLOCK.get())
-                .requires(Blocks.CHEST)
-                .requires(Items.ECHO_SHARD)
+        ShapedRecipeBuilder.shaped(ModRegistry.ECHO_CHEST_BLOCK.get())
+                .define('#', Blocks.DEEPSLATE)
+                .define('+', Blocks.DEEPSLATE_BRICKS)
+                .define('@', Items.ECHO_SHARD)
+                .pattern("#+#")
+                .pattern("+@+")
+                .pattern("#+#")
                 .unlockedBy(getHasName(Items.ECHO_SHARD), has(Items.ECHO_SHARD))
                 .save(recipeConsumer);
     }

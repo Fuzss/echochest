@@ -57,6 +57,8 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     private final EchoChestOpenersCounter openersCounter;
     private final int[] allSlots;
     private final int[] inventorySlots;
+    private final BlockPositionSource blockPosSource;
+    private int experience;
     private final ContainerData dataAccess = new ContainerData() {
 
         @Override
@@ -76,8 +78,6 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
             return 1;
         }
     };
-    private final BlockPositionSource blockPosSource;
-    private int experience;
 
     public EchoChestBlockEntity(BlockPos blockPos, BlockState blockState) {
         super(ModRegistry.ECHO_CHEST_BLOCK_ENTITY_TYPE.get(), blockPos, blockState);
@@ -86,30 +86,6 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
         this.allSlots = IntStream.range(0, this.getContainerSize()).toArray();
         this.inventorySlots = IntStream.range(1, this.getContainerSize()).toArray();
         this.openersCounter = new EchoChestOpenersCounter(this);
-    }
-
-    @Override
-    public int getContainerSize() {
-        return CONTAINER_SIZE;
-    }
-
-    @Override
-    protected Component getDefaultName() {
-        return CONTAINER_TITLE;
-    }
-    
-    public boolean canAcceptExperience() {
-        return this.experience < MAX_EXPERIENCE;
-    }
-    
-    public void acceptExperience(int amount) {
-        int lastExperience = this.experience;
-        this.experience = Mth.clamp(this.experience + amount, 0, MAX_EXPERIENCE);
-        if (this.experience != lastExperience) this.setChanged();
-    }
-
-    public void extractExperienceBottle() {
-        this.acceptExperience(-EXPERIENCE_PER_BOTTLE);
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, EchoChestBlockEntity blockEntity) {
@@ -121,6 +97,53 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
                 blockEntity.setItem(0, stack);
             }
         }
+    }
+
+    private static void animate(Level level, BlockPos pos, BlockState state, EchoChestOpenersCounter openersCounter) {
+        openersCounter.incrementOpeners(null, level, pos, state);
+        if (!state.getValue(EnderChestBlock.WATERLOGGED)) {
+            level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundEvents.DEEPSLATE_BRICKS_BREAK, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.2F + 0.8F);
+        }
+    }
+
+    private static boolean isOccluded(Level level, Vec3 from, Vec3 to) {
+        from = new Vec3((double) Mth.floor(from.x) + 0.5, (double) Mth.floor(from.y) + 0.5, (double) Mth.floor(from.z) + 0.5);
+        to = new Vec3((double) Mth.floor(to.x) + 0.5, (double) Mth.floor(to.y) + 0.5, (double) Mth.floor(to.z) + 0.5);
+
+        for (Direction direction : Direction.values()) {
+            Vec3 vec3 = from.relative(direction, 9.999999747378752E-6);
+            if (level.isBlockInLine(new ClipBlockStateContext(vec3, to, (blockState) -> {
+                return blockState.is(BlockTags.OCCLUDES_VIBRATION_SIGNALS);
+            })).getType() != HitResult.Type.BLOCK) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public int getContainerSize() {
+        return CONTAINER_SIZE;
+    }
+
+    @Override
+    protected Component getDefaultName() {
+        return CONTAINER_TITLE;
+    }
+
+    public boolean canAcceptExperience() {
+        return this.experience < MAX_EXPERIENCE;
+    }
+
+    public void acceptExperience(int amount) {
+        int lastExperience = this.experience;
+        this.experience = Mth.clamp(this.experience + amount, 0, MAX_EXPERIENCE);
+        if (this.experience != lastExperience) this.setChanged();
+    }
+
+    public void extractExperienceBottle() {
+        this.acceptExperience(-EXPERIENCE_PER_BOTTLE);
     }
 
     @Override
@@ -219,13 +242,6 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
 
     }
 
-    private static void animate(Level level, BlockPos pos, BlockState state, EchoChestOpenersCounter openersCounter) {
-        openersCounter.incrementOpeners(null, level, pos, state);
-        if (!state.getValue(EnderChestBlock.WATERLOGGED)) {
-            level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundEvents.DEEPSLATE_BRICKS_BREAK, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.2F + 0.8F);
-        }
-    }
-
     @Override
     public boolean canPlaceItem(int index, ItemStack stack) {
         return index != 0 || EchoChestMenu.validBottleItem(stack);
@@ -303,21 +319,5 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
             return HopperBlockEntity.addItem(this, item) || lastCount != item.getItem().getCount();
         }
         return false;
-    }
-
-    private static boolean isOccluded(Level level, Vec3 from, Vec3 to) {
-        from = new Vec3((double)Mth.floor(from.x) + 0.5, (double)Mth.floor(from.y) + 0.5, (double)Mth.floor(from.z) + 0.5);
-        to = new Vec3((double)Mth.floor(to.x) + 0.5, (double)Mth.floor(to.y) + 0.5, (double)Mth.floor(to.z) + 0.5);
-
-        for (Direction direction : Direction.values()) {
-            Vec3 vec3 = from.relative(direction, 9.999999747378752E-6);
-            if (level.isBlockInLine(new ClipBlockStateContext(vec3, to, (blockState) -> {
-                return blockState.is(BlockTags.OCCLUDES_VIBRATION_SIGNALS);
-            })).getType() != HitResult.Type.BLOCK) {
-                return false;
-            }
-        }
-
-        return true;
     }
 }

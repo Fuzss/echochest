@@ -80,7 +80,7 @@ public class EchoChestBlock extends EnderChestBlock {
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new EchoChestBlockEntity(pos, state);
+        return ModRegistry.ECHO_CHEST_BLOCK_ENTITY_TYPE.get().create(pos, state);
     }
 
     @Nullable

@@ -1,6 +1,7 @@
 package fuzs.echochest;
 
 import fuzs.echochest.data.*;
+import fuzs.echochest.init.ForgeModRegistry;
 import fuzs.puzzleslib.core.CommonFactories;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.common.data.ExistingFileHelper;
@@ -16,6 +17,7 @@ public class EchoChestForge {
     @SubscribeEvent
     public static void onConstructMod(final FMLConstructModEvent evt) {
         CommonFactories.INSTANCE.modConstructor(EchoChest.MOD_ID).accept(new EchoChest());
+        ForgeModRegistry.touch();
     }
 
     @SubscribeEvent
