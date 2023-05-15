@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog].
 
+## [v4.0.2-1.19.2] - 2023-05-15
+### Fixed
+- Fixed a crash caused by Fabric Api assuming a block state present on chests to be available for the echo chest as well
+
 ## [v4.0.1-1.19.2] - 2023-05-08
 ### Fixed
 - Fixed item texture showing a vanilla chest on Fabric with the [Enhanced Block Entities](https://www.curseforge.com/minecraft/mc-mods/enhanced-block-entities) mod installed
