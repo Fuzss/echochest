@@ -1,13 +1,13 @@
 package fuzs.echochest.data;
 
 import fuzs.echochest.init.ModRegistry;
-import net.minecraft.data.DataGenerator;
-import net.minecraftforge.common.data.LanguageProvider;
+import fuzs.puzzleslib.api.data.v1.AbstractLanguageProvider;
+import net.minecraft.data.PackOutput;
 
-public class ModLanguageProvider extends LanguageProvider {
+public class ModLanguageProvider extends AbstractLanguageProvider {
 
-    public ModLanguageProvider(DataGenerator dataGenerator, String modId) {
-        super(dataGenerator, modId, "en_us");
+    public ModLanguageProvider(PackOutput packOutput, String modId) {
+        super(packOutput, modId);
     }
 
     @Override

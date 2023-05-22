@@ -1,12 +1,12 @@
 package fuzs.echochest;
 
-import fuzs.puzzleslib.core.CommonFactories;
+import fuzs.puzzleslib.api.core.v1.ModConstructor;
 import net.fabricmc.api.ModInitializer;
 
 public class EchoChestFabric implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        CommonFactories.INSTANCE.modConstructor(EchoChest.MOD_ID).accept(new EchoChest());
+        ModConstructor.construct(EchoChest.MOD_ID, EchoChest::new);
     }
 }

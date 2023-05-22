@@ -274,31 +274,24 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     }
 
     @Override
-    public boolean handleGameEvent(ServerLevel level, GameEvent.Message eventMessage) {
-        GameEvent gameEvent = eventMessage.gameEvent();
-        GameEvent.Context context = eventMessage.context();
-        if (!this.isValidVibration(gameEvent, context)) {
-            return false;
-        } else {
+    public boolean handleGameEvent(ServerLevel level, GameEvent gameEvent, GameEvent.Context context, Vec3 pos) {
+        if (this.isValidVibration(gameEvent, context)) {
             Optional<Vec3> optional = this.getListenerSource().getPosition(level);
-            if (optional.isEmpty()) {
-                return false;
-            } else {
-                Vec3 origin = eventMessage.source();
+            if (optional.isPresent()) {
                 Vec3 destination = optional.get();
-                if (!this.shouldListen(level, this, new BlockPos(origin), gameEvent, context)) {
+                if (!this.shouldListen(level, this, new BlockPos(pos), gameEvent, context)) {
                     return false;
-                } else if (isOccluded(level, origin, destination)) {
+                } else if (isOccluded(level, pos, destination)) {
                     return false;
-                } else if (this.onSignalReceive(level, gameEvent, context, origin, destination)) {
+                } else if (this.onSignalReceive(level, gameEvent, context, pos, destination)) {
                     animate(this.level, this.getBlockPos(), this.getBlockState(), this.openersCounter);
-                    int travelTimeInTicks = Mth.floor(origin.distanceTo(destination));
-                    level.sendParticles(new VibrationParticleOption(this.getListenerSource(), travelTimeInTicks), origin.x, origin.y, origin.z, 1, 0.0, 0.0, 0.0, 0.0);
+                    int travelTimeInTicks = Mth.floor(pos.distanceTo(destination));
+                    level.sendParticles(new VibrationParticleOption(this.getListenerSource(), travelTimeInTicks), pos.x, pos.y, pos.z, 1, 0.0, 0.0, 0.0, 0.0);
                     return true;
                 }
-                return false;
             }
         }
+        return false;
     }
 
     private boolean onSignalReceive(ServerLevel level, GameEvent event, GameEvent.Context context, Vec3 origin, Vec3 destination) {

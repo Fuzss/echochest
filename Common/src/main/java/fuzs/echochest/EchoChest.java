@@ -1,7 +1,7 @@
 package fuzs.echochest;
 
 import fuzs.echochest.init.ModRegistry;
-import fuzs.puzzleslib.core.ModConstructor;
+import fuzs.puzzleslib.api.core.v1.ModConstructor;
 import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
