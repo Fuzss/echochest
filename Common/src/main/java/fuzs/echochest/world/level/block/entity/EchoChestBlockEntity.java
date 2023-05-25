@@ -279,7 +279,7 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
             Optional<Vec3> optional = this.getListenerSource().getPosition(level);
             if (optional.isPresent()) {
                 Vec3 destination = optional.get();
-                if (!this.shouldListen(level, this, new BlockPos(pos), gameEvent, context)) {
+                if (!this.shouldListen(level, this, BlockPos.containing(pos), gameEvent, context)) {
                     return false;
                 } else if (isOccluded(level, pos, destination)) {
                     return false;

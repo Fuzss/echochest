@@ -14,11 +14,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.ChestRenderer;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 public class EchoChestClient implements ClientModConstructor {
@@ -37,14 +37,14 @@ public class EchoChestClient implements ClientModConstructor {
     @Override
     public void onRegisterBuiltinModelItemRenderers(BuiltinModelItemRendererContext context) {
         final EchoChestBlockEntity echoChest = new EchoChestBlockEntity(BlockPos.ZERO, ModRegistry.ECHO_CHEST_BLOCK.get().defaultBlockState());
-        context.registerItemRenderer((ItemStack stack, ItemTransforms.TransformType mode, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) -> {
+        context.registerItemRenderer((ItemStack stack, ItemDisplayContext mode, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) -> {
             Minecraft.getInstance().getBlockEntityRenderDispatcher().renderItem(echoChest, matrices, vertexConsumers, light, overlay);
         }, ModRegistry.ECHO_CHEST_BLOCK.get());
     }
 
     @Override
     public void onBuildCreativeModeTabContents(BuildCreativeModeTabContentsContext context) {
-        context.registerBuildListener(CreativeModeTabs.FUNCTIONAL_BLOCKS, (featureFlagSet, output, bl) -> {
+        context.registerBuildListener(CreativeModeTabs.FUNCTIONAL_BLOCKS, (itemDisplayParameters, output) -> {
             output.accept(ModRegistry.ECHO_CHEST_ITEM.get());
         });
     }

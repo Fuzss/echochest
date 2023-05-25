@@ -19,5 +19,6 @@
   ],
   "result": {
     "item": "echochest:echo_chest"
-  }
+  },
+  "show_notification": true
 }

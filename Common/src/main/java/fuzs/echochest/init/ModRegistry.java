@@ -25,7 +25,7 @@ public class ModRegistry {
     public static final RegistryReference<MenuType<EchoChestMenu>> ECHO_CHEST_MENU_TYPE = REGISTRY.registerMenuType("echo_chest", () -> EchoChestMenu::new);
     public static final RegistryReference<GameEvent> ITEM_TICK_GAME_EVENT = REGISTRY.register(Registries.GAME_EVENT, "item_tick", () -> new GameEvent("item_tick", 8));
 
-    public static final TagKey<GameEvent> ECHO_CHEST_CAN_LISTEN = REGISTRY.createGameEventTag("echo_chest_can_listen");
+    public static final TagKey<GameEvent> ECHO_CHEST_CAN_LISTEN = REGISTRY.registerGameEventTag("echo_chest_can_listen");
 
     public static void touch() {
 
