@@ -13,7 +13,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
-public class EchoChestOpenersCounter {
+class EchoChestOpenersCounter {
     private final Container container;
     private int openCount;
 
