@@ -30,7 +30,6 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,12 +88,6 @@ public class EchoChestBlock extends EnderChestBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return ModRegistry.ECHO_CHEST_BLOCK_ENTITY_TYPE.get().create(pos, state);
-    }
-
-    @Nullable
-    @Override
-    public <T extends BlockEntity> GameEventListener getListener(ServerLevel level, T blockEntity) {
-        return blockEntity instanceof EchoChestBlockEntity echoChestBlockEntity ? echoChestBlockEntity : null;
     }
 
     @Override

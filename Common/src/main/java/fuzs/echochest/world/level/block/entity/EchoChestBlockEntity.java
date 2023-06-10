@@ -1,5 +1,7 @@
 package fuzs.echochest.world.level.block.entity;
 
+import com.mojang.serialization.Dynamic;
+import fuzs.echochest.EchoChest;
 import fuzs.echochest.init.ModRegistry;
 import fuzs.echochest.world.inventory.EchoChestMenu;
 import net.minecraft.advancements.CriteriaTriggers;
@@ -8,6 +10,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.VibrationParticleOption;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
@@ -39,7 +42,7 @@ import net.minecraft.world.level.gameevent.BlockPositionSource;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.level.gameevent.PositionSource;
-import net.minecraft.world.level.gameevent.vibrations.VibrationListener;
+import net.minecraft.world.level.gameevent.vibrations.VibrationSystem;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -47,18 +50,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyContainer, GameEventListener, VibrationListener.VibrationListenerConfig {
+public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyContainer, GameEventListener.Holder<EchoChestBlockEntity>, GameEventListener, VibrationSystem, VibrationSystem.User {
     public static final String TAG_EXPERIENCE = "Experience";
     public static final MutableComponent CONTAINER_TITLE = Component.translatable("container.echo_chest");
     public static final int CONTAINER_SIZE = 25;
     public static final int MAX_EXPERIENCE = 3000;
     public static final int EXPERIENCE_PER_BOTTLE = 7;
 
-    private final EchoChestOpenersCounter openersCounter;
-    private final int[] allSlots;
-    private final int[] inventorySlots;
-    private final BlockPositionSource blockPosSource;
-    private int experience;
     private final ContainerData dataAccess = new ContainerData() {
 
         @Override
@@ -78,6 +76,13 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
             return 1;
         }
     };
+    private final EchoChestOpenersCounter openersCounter;
+    private final int[] allSlots;
+    private final int[] inventorySlots;
+    private final BlockPositionSource blockPosSource;
+    private final PositionSource positionSource;
+    private VibrationSystem.Data vibrationData;
+    private int experience;
 
     public EchoChestBlockEntity(BlockPos blockPos, BlockState blockState) {
         super(ModRegistry.ECHO_CHEST_BLOCK_ENTITY_TYPE.get(), blockPos, blockState);
@@ -86,6 +91,8 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
         this.allSlots = IntStream.range(0, this.getContainerSize()).toArray();
         this.inventorySlots = IntStream.range(1, this.getContainerSize()).toArray();
         this.openersCounter = new EchoChestOpenersCounter(this);
+        this.positionSource = new BlockPositionSource(blockPos);
+        this.vibrationData = new VibrationSystem.Data();
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, EchoChestBlockEntity blockEntity) {
@@ -154,6 +161,11 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
             ContainerHelper.loadAllItems(tag, this.getItems());
         }
         this.experience = tag.getInt(TAG_EXPERIENCE);
+        if (tag.contains("listener", 10)) {
+            VibrationSystem.Data.CODEC.parse(new Dynamic<>(NbtOps.INSTANCE, tag.getCompound("listener"))).resultOrPartial(EchoChest.LOGGER::error).ifPresent((data) -> {
+                this.vibrationData = data;
+            });
+        }
     }
 
     @Override
@@ -164,6 +176,9 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
             ContainerHelper.saveAllItems(tag, this.getItems(), true);
         }
         tag.putInt(TAG_EXPERIENCE, this.experience);
+        VibrationSystem.Data.CODEC.encodeStart(NbtOps.INSTANCE, this.vibrationData).resultOrPartial(EchoChest.LOGGER::error).ifPresent((data) -> {
+            tag.put("listener", data);
+        });
     }
 
     @Override
@@ -233,12 +248,12 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     }
 
     @Override
-    public boolean shouldListen(ServerLevel level, GameEventListener listener, BlockPos pos, GameEvent gameEvent, GameEvent.Context context) {
+    public boolean canReceiveVibration(ServerLevel level, BlockPos pos, GameEvent gameEvent, GameEvent.Context context) {
         return !this.isRemoved() && context.sourceEntity() != null && !context.sourceEntity().isRemoved() && (gameEvent != GameEvent.ENTITY_DIE || context.sourceEntity() instanceof LivingEntity && this.canAcceptExperience());
     }
 
     @Override
-    public void onSignalReceive(ServerLevel level, GameEventListener listener, BlockPos sourcePos, GameEvent gameEvent, @Nullable Entity sourceEntity, @Nullable Entity projectileOwner, float distance) {
+    public void onReceiveVibration(ServerLevel level, BlockPos sourcePos, GameEvent gameEvent, @Nullable Entity sourceEntity, @Nullable Entity projectileOwner, float distance) {
 
     }
 
@@ -274,12 +289,17 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     }
 
     @Override
+    public PositionSource getPositionSource() {
+        return this.positionSource;
+    }
+
+    @Override
     public boolean handleGameEvent(ServerLevel level, GameEvent gameEvent, GameEvent.Context context, Vec3 pos) {
         if (this.isValidVibration(gameEvent, context)) {
             Optional<Vec3> optional = this.getListenerSource().getPosition(level);
             if (optional.isPresent()) {
                 Vec3 destination = optional.get();
-                if (!this.shouldListen(level, this, BlockPos.containing(pos), gameEvent, context)) {
+                if (!this.canReceiveVibration(level, BlockPos.containing(pos), gameEvent, context)) {
                     return false;
                 } else if (isOccluded(level, pos, destination)) {
                     return false;
@@ -312,5 +332,20 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
             return HopperBlockEntity.addItem(this, item) || lastCount != item.getItem().getCount();
         }
         return false;
+    }
+
+    @Override
+    public Data getVibrationData() {
+        return this.vibrationData;
+    }
+
+    @Override
+    public User getVibrationUser() {
+        return this;
+    }
+
+    @Override
+    public EchoChestBlockEntity getListener() {
+        return this;
     }
 }

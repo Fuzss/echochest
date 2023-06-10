@@ -23,7 +23,7 @@ abstract class ItemEntityMixin extends Entity {
 
     @Inject(method = "tick", at = @At("TAIL"))
     public void tick(CallbackInfo callback) {
-        if (!this.isRemoved() && !this.level.isClientSide) {
+        if (!this.isRemoved() && !this.level().isClientSide) {
             if (--this.echochest$tickCooldown == 0) {
                 this.gameEvent(ModRegistry.ITEM_TICK_GAME_EVENT.get());
                 // add randomness, since only a single game event seems to be processed per listener per tick
