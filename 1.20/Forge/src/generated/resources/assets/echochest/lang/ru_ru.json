@@ -1,0 +1,5 @@
+{
+  "block.echochest.echo_chest": "Эхо-сундук",
+  "block.echochest.echo_chest.description": "Собирает предметы и опыт с мобов, в радиусе 8 блоков.",
+  "container.echo_chest": "Эхо-сундук"
+}
