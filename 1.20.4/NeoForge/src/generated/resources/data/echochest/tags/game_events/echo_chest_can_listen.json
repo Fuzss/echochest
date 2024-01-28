@@ -1,7 +1,0 @@
-{
-  "values": [
-    "minecraft:entity_die",
-    "minecraft:hit_ground",
-    "echochest:item_tick"
-  ]
-}

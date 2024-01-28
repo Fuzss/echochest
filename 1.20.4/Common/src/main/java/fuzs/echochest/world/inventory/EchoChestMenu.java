@@ -22,14 +22,17 @@ public class EchoChestMenu extends AbstractContainerMenu {
     }
 
     public EchoChestMenu(int containerId, Inventory inventory, Container container, ContainerData containerData) {
-        super(ModRegistry.ECHO_CHEST_MENU_TYPE.get(), containerId);
+        super(ModRegistry.ECHO_CHEST_MENU_TYPE.value(), containerId);
         checkContainerSize(container, EchoChestBlockEntity.CONTAINER_SIZE);
         this.container = container;
         this.containerData = containerData;
         container.startOpen(inventory.player);
+        this.addSlots(inventory);
         this.addDataSlots(containerData);
+    }
 
-        this.addSlot(new Slot(container, 0, 19, 73) {
+    private void addSlots(Inventory inventory) {
+        this.addSlot(new Slot(this.container, 0, 19, 73) {
 
             @Override
             public boolean mayPlace(ItemStack stack) {
@@ -39,7 +42,7 @@ public class EchoChestMenu extends AbstractContainerMenu {
 
         for (int l = 0; l < 4; ++l) {
             for (int m = 0; m < 6; ++m) {
-                this.addSlot(new Slot(container, m + l * 6 + 1, 51 + m * 18, 24 + l * 18));
+                this.addSlot(new Slot(this.container, m + l * 6 + 1, 51 + m * 18, 24 + l * 18));
             }
         }
 

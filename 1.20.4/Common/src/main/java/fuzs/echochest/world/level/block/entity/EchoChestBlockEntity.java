@@ -4,6 +4,7 @@ import com.mojang.serialization.Dynamic;
 import fuzs.echochest.EchoChest;
 import fuzs.echochest.init.ModRegistry;
 import fuzs.echochest.world.inventory.EchoChestMenu;
+import fuzs.puzzleslib.api.block.v1.entity.TickingBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -37,9 +38,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.IntStream;
 
-public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyContainer, GameEventListener.Holder<EchoChestListener>, VibrationSystem {
+public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyContainer, GameEventListener.Holder<EchoChestListener>, VibrationSystem, TickingBlockEntity {
     public static final String TAG_EXPERIENCE = "Experience";
-    public static final MutableComponent CONTAINER_TITLE = Component.translatable("container.echo_chest");
+    public static final MutableComponent CONTAINER_ECHO_CHEST = Component.translatable("container.echo_chest");
     public static final int CONTAINER_SIZE = 25;
     public static final int MAX_EXPERIENCE = 3000;
     public static final int EXPERIENCE_PER_BOTTLE = 7;
@@ -72,7 +73,7 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     private int experience;
 
     public EchoChestBlockEntity(BlockPos blockPos, BlockState blockState) {
-        super(ModRegistry.ECHO_CHEST_BLOCK_ENTITY_TYPE.get(), blockPos, blockState);
+        super(ModRegistry.ECHO_CHEST_BLOCK_ENTITY_TYPE.value(), blockPos, blockState);
         this.setItems(NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY));
         this.allSlots = IntStream.range(0, this.getContainerSize()).toArray();
         this.inventorySlots = IntStream.range(1, this.getContainerSize()).toArray();
@@ -123,7 +124,7 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
 
     @Override
     protected Component getDefaultName() {
-        return CONTAINER_TITLE;
+        return CONTAINER_ECHO_CHEST;
     }
 
     public boolean canAcceptExperience() {
@@ -228,5 +229,15 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     @Override
     public Data getVibrationData() {
         return this.vibrationData;
+    }
+
+    @Override
+    public void clientTick() {
+        lidAnimateTick(this.getLevel(), this.getBlockPos(), this.getBlockState(), this);
+    }
+
+    @Override
+    public void serverTick() {
+        serverTick(this.getLevel(), this.getBlockPos(), this.getBlockState(), this);
     }
 }

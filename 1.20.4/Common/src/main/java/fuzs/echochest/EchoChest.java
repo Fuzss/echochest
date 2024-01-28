@@ -21,7 +21,7 @@ public class EchoChest implements ModConstructor {
     @Override
     public void onBuildCreativeModeTabContents(BuildCreativeModeTabContentsContext context) {
         context.registerBuildListener(CreativeModeTabs.FUNCTIONAL_BLOCKS, (itemDisplayParameters, output) -> {
-            output.accept(ModRegistry.ECHO_CHEST_ITEM.get());
+            output.accept(ModRegistry.ECHO_CHEST_ITEM.value());
         });
     }
 

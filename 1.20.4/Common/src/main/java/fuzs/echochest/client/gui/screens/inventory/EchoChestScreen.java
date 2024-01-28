@@ -30,7 +30,6 @@ public class EchoChestScreen extends AbstractContainerScreen<EchoChestMenu> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         if (this.isHovering(21, 29, 12, 40, mouseX, mouseY)) {
             guiGraphics.renderTooltip(this.font, Component.literal((int) (this.menu.getExperience() / EchoChestBlockEntity.EXPERIENCE_PER_BOTTLE) + "x ").append(Items.EXPERIENCE_BOTTLE.getDescription()).withStyle(ChatFormatting.YELLOW), mouseX, mouseY);

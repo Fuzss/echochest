@@ -1,8 +1,11 @@
 package fuzs.echochest.world.level.block;
 
+import fuzs.echochest.EchoChest;
 import fuzs.echochest.init.ModRegistry;
 import fuzs.echochest.world.level.block.entity.EchoChestBlockEntity;
+import fuzs.puzzleslib.api.block.v1.entity.TickingEntityBlock;
 import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -36,9 +39,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
-public class EchoChestBlock extends EnderChestBlock {
+public class EchoChestBlock extends EnderChestBlock implements TickingEntityBlock<EchoChestBlockEntity> {
+    public static final Component DESCRIPTION_COMPONENT = Component.translatable(Util.makeDescriptionId("block", EchoChest.id("echo_chest.description"))).withStyle(ChatFormatting.GOLD);
     public static final EnumProperty<ChestType> TYPE = BlockStateProperties.CHEST_TYPE;
-    private static final Component DESCRIPTION_COMPONENT = Component.translatable("block.echochest.echo_chest.description").withStyle(ChatFormatting.GOLD);
 
     public EchoChestBlock(Properties properties) {
         super(properties);
@@ -64,7 +67,6 @@ public class EchoChestBlock extends EnderChestBlock {
                 Containers.dropContents(level, pos, (Container) blockEntity);
                 level.updateNeighbourForOutputSignal(pos, this);
             }
-
             super.onRemove(state, level, pos, newState, isMoving);
         }
     }
@@ -79,21 +81,25 @@ public class EchoChestBlock extends EnderChestBlock {
                 player.openMenu(blockEntity);
                 PiglinAi.angerNearbyPiglins(player, true);
             }
-
             return InteractionResult.CONSUME;
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return ModRegistry.ECHO_CHEST_BLOCK_ENTITY_TYPE.get().create(pos, state);
+    public BlockEntityType<? extends EchoChestBlockEntity> getBlockEntityType() {
+        return ModRegistry.ECHO_CHEST_BLOCK_ENTITY_TYPE.value();
     }
 
     @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return TickingEntityBlock.super.newBlockEntity(pos, state);
+    }
+
     @Nullable
+    @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        return createTickerHelper(blockEntityType, ModRegistry.ECHO_CHEST_BLOCK_ENTITY_TYPE.get(), level.isClientSide ? EchoChestBlockEntity::lidAnimateTick : EchoChestBlockEntity::serverTick);
+        return TickingEntityBlock.super.getTicker(level, state, blockEntityType);
     }
 
     @Override
@@ -108,15 +114,14 @@ public class EchoChestBlock extends EnderChestBlock {
 
     @Override
     public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof ChestBlockEntity) {
-            ((ChestBlockEntity) blockEntity).recheckOpen();
+        if (level.getBlockEntity(pos) instanceof ChestBlockEntity blockEntity) {
+            blockEntity.recheckOpen();
         }
     }
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-
+        // NO-OP
     }
 
     @Override
