@@ -11,7 +11,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.gameevent.BlockPositionSource;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.gameevent.PositionSource;
@@ -42,29 +41,7 @@ record EchoChestVibrationUser(EchoChestBlockEntity blockEntity,
 
     @Override
     public void onReceiveVibration(ServerLevel level, BlockPos sourcePos, GameEvent gameEvent, @Nullable Entity sourceEntity, @Nullable Entity projectileOwner, float distance) {
-        if (this.isAllowedToReceiveSignal(gameEvent, sourceEntity)) {
-            this.blockEntity.animate();
-        }
-    }
-
-    private boolean isAllowedToReceiveSignal(GameEvent event, @Nullable Entity sourceEntity) {
-        if (event == GameEvent.ENTITY_DIE) {
-            if (sourceEntity instanceof LivingEntity livingEntity) {
-                if (this.blockEntity.canAcceptExperience() && !livingEntity.wasExperienceConsumed()) {
-                    int experienceReward = livingEntity.getExperienceReward();
-                    if (livingEntity.shouldDropExperience() && experienceReward > 0) {
-                        this.blockEntity.acceptExperience(experienceReward);
-                    }
-
-                    livingEntity.skipDropExperience();
-                    return true;
-                }
-            }
-        } else if (sourceEntity instanceof ItemEntity item && !item.isRemoved()) {
-            int lastCount = item.getItem().getCount();
-            return HopperBlockEntity.addItem(this.blockEntity, item) || lastCount != item.getItem().getCount();
-        }
-        return false;
+        // NO-OP
     }
 
     @Override
@@ -80,8 +57,6 @@ record EchoChestVibrationUser(EchoChestBlockEntity blockEntity,
             Entity entity = context.sourceEntity();
             if (entity != null) {
                 if (entity.isSpectator()) {
-                    return false;
-                } else if (gameEvent == GameEvent.HIT_GROUND && !(entity instanceof ItemEntity)) {
                     return false;
                 }
 
