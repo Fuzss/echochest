@@ -14,7 +14,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
@@ -24,51 +23,29 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ClipBlockStateContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EnderChestBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.level.gameevent.vibrations.VibrationSystem;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.IntStream;
 
-public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyContainer, GameEventListener.Holder<EchoChestListener>, VibrationSystem, TickingBlockEntity {
-    public static final String TAG_EXPERIENCE = "Experience";
+public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyContainer, GameEventListener.Holder<GameEventListener>, VibrationSystem, TickingBlockEntity {
+    public static final String TAG_EXPERIENCE = EchoChest.id("experience").toString();
     public static final MutableComponent CONTAINER_ECHO_CHEST = Component.translatable("container.echo_chest");
     public static final int CONTAINER_SIZE = 25;
     public static final int MAX_EXPERIENCE = 3000;
     public static final int EXPERIENCE_PER_BOTTLE = 7;
 
-    private final ContainerData dataAccess = new ContainerData() {
-
-        @Override
-        public int get(int index) {
-            return index == 0 ? EchoChestBlockEntity.this.experience : 0;
-        }
-
-        @Override
-        public void set(int index, int value) {
-            if (index == 0) {
-                EchoChestBlockEntity.this.experience = value;
-            }
-        }
-
-        @Override
-        public int getCount() {
-            return 1;
-        }
-    };
-    final EchoChestOpenersCounter openersCounter;
     private final int[] allSlots;
     private final int[] inventorySlots;
-    private final EchoChestListener listener;
+    private final EchoChestOpenersCounter openersCounter;
+    private final GameEventListener listener;
     private final VibrationSystem.User user;
+    private final ContainerData dataAccess;
     private VibrationSystem.Data vibrationData;
     private int experience;
 
@@ -78,9 +55,28 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
         this.allSlots = IntStream.range(0, this.getContainerSize()).toArray();
         this.inventorySlots = IntStream.range(1, this.getContainerSize()).toArray();
         this.openersCounter = new EchoChestOpenersCounter(this);
-        this.listener = new EchoChestListener(this);
+        this.listener = new VibrationSystem.Listener(this);
         this.user = new EchoChestVibrationUser(this);
         this.vibrationData = new VibrationSystem.Data();
+        this.dataAccess = new ContainerData() {
+
+            @Override
+            public int get(int index) {
+                return index == 0 ? EchoChestBlockEntity.this.experience : 0;
+            }
+
+            @Override
+            public void set(int index, int value) {
+                if (index == 0) {
+                    EchoChestBlockEntity.this.experience = value;
+                }
+            }
+
+            @Override
+            public int getCount() {
+                return 1;
+            }
+        };
     }
 
     @Override
@@ -90,6 +86,7 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
 
     @Override
     public void serverTick() {
+        Ticker.tick(this.getLevel(), this.vibrationData, this.user);
         if (this.experience >= EXPERIENCE_PER_BOTTLE) {
             if (EchoChestMenu.validBottleItem(this.getItem(0)) && HopperBlockEntity.addItem(null, this, new ItemStack(Items.EXPERIENCE_BOTTLE), null).isEmpty()) {
                 this.extractExperienceBottle();
@@ -100,27 +97,12 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
         }
     }
 
-    static void animate(Level level, BlockPos pos, BlockState state, EchoChestOpenersCounter openersCounter) {
-        openersCounter.incrementOpeners(null, level, pos, state);
-        if (!state.getValue(EnderChestBlock.WATERLOGGED)) {
-            level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundEvents.DEEPSLATE_BRICKS_BREAK, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.2F + 0.8F);
+    void animate() {
+        BlockPos blockPos = this.getBlockPos();
+        this.openersCounter.incrementOpeners(null, this.getLevel(), blockPos, this.getBlockState());
+        if (!this.getBlockState().getValue(EnderChestBlock.WATERLOGGED)) {
+            this.getLevel().playSound(null, blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, SoundEvents.DEEPSLATE_BRICKS_BREAK, SoundSource.BLOCKS, 1.0F, this.getLevel().random.nextFloat() * 0.2F + 0.8F);
         }
-    }
-
-    static boolean isOccluded(Level level, Vec3 from, Vec3 to) {
-        from = new Vec3((double) Mth.floor(from.x) + 0.5, (double) Mth.floor(from.y) + 0.5, (double) Mth.floor(from.z) + 0.5);
-        to = new Vec3((double) Mth.floor(to.x) + 0.5, (double) Mth.floor(to.y) + 0.5, (double) Mth.floor(to.z) + 0.5);
-
-        for (Direction direction : Direction.values()) {
-            Vec3 vec3 = from.relative(direction, 9.999999747378752E-6);
-            if (level.isBlockInLine(new ClipBlockStateContext(vec3, to, (blockState) -> {
-                return blockState.is(BlockTags.OCCLUDES_VIBRATION_SIGNALS);
-            })).getType() != HitResult.Type.BLOCK) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     @Override
@@ -223,7 +205,7 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     }
 
     @Override
-    public EchoChestListener getListener() {
+    public GameEventListener getListener() {
         return this.listener;
     }
 
