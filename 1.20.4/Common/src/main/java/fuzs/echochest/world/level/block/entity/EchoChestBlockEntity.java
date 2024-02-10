@@ -1,6 +1,5 @@
 package fuzs.echochest.world.level.block.entity;
 
-import com.mojang.serialization.Dynamic;
 import fuzs.echochest.EchoChest;
 import fuzs.echochest.init.ModRegistry;
 import fuzs.echochest.world.inventory.EchoChestMenu;
@@ -9,12 +8,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
@@ -24,52 +21,27 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ClipBlockStateContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EnderChestBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEventListener;
-import net.minecraft.world.level.gameevent.vibrations.VibrationSystem;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.IntStream;
 
-public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyContainer, GameEventListener.Holder<EchoChestListener>, VibrationSystem, TickingBlockEntity {
-    public static final String TAG_EXPERIENCE = "Experience";
+public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyContainer, GameEventListener.Holder<GameEventListener>, TickingBlockEntity {
+    public static final String TAG_EXPERIENCE = EchoChest.id("experience").toString();
     public static final MutableComponent CONTAINER_ECHO_CHEST = Component.translatable("container.echo_chest");
     public static final int CONTAINER_SIZE = 25;
     public static final int MAX_EXPERIENCE = 3000;
     public static final int EXPERIENCE_PER_BOTTLE = 7;
 
-    private final ContainerData dataAccess = new ContainerData() {
-
-        @Override
-        public int get(int index) {
-            return index == 0 ? EchoChestBlockEntity.this.experience : 0;
-        }
-
-        @Override
-        public void set(int index, int value) {
-            if (index == 0) {
-                EchoChestBlockEntity.this.experience = value;
-            }
-        }
-
-        @Override
-        public int getCount() {
-            return 1;
-        }
-    };
-    final EchoChestOpenersCounter openersCounter;
+    private final ContainerData dataAccess;
+    private final EchoChestOpenersCounter openersCounter;
     private final int[] allSlots;
     private final int[] inventorySlots;
-    private final EchoChestListener listener;
-    private final VibrationSystem.User user;
-    private VibrationSystem.Data vibrationData;
+    private final GameEventListener listener;
     private int experience;
 
     public EchoChestBlockEntity(BlockPos blockPos, BlockState blockState) {
@@ -79,8 +51,25 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
         this.inventorySlots = IntStream.range(1, this.getContainerSize()).toArray();
         this.openersCounter = new EchoChestOpenersCounter(this);
         this.listener = new EchoChestListener(this);
-        this.user = new EchoChestVibrationUser(this);
-        this.vibrationData = new VibrationSystem.Data();
+        this.dataAccess = new ContainerData() {
+
+            @Override
+            public int get(int index) {
+                return index == 0 ? EchoChestBlockEntity.this.experience : 0;
+            }
+
+            @Override
+            public void set(int index, int value) {
+                if (index == 0) {
+                    EchoChestBlockEntity.this.experience = value;
+                }
+            }
+
+            @Override
+            public int getCount() {
+                return 1;
+            }
+        };
     }
 
     @Override
@@ -100,27 +89,13 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
         }
     }
 
-    static void animate(Level level, BlockPos pos, BlockState state, EchoChestOpenersCounter openersCounter) {
-        openersCounter.incrementOpeners(null, level, pos, state);
-        if (!state.getValue(EnderChestBlock.WATERLOGGED)) {
-            level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundEvents.DEEPSLATE_BRICKS_BREAK, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.2F + 0.8F);
+    void animate() {
+        this.openersCounter.incrementOpeners(null, this.getLevel(), this.getBlockPos(), this.getBlockState());
+        if (!this.getBlockState().getValue(EnderChestBlock.WATERLOGGED)) {
+            this.getLevel()
+                    .playSound(null, this.getBlockPos().getX() + 0.5, this.getBlockPos().getY() + 0.5, this.getBlockPos()
+                            .getZ() + 0.5, SoundEvents.DEEPSLATE_BRICKS_BREAK, SoundSource.BLOCKS, 1.0F, this.getLevel().random.nextFloat() * 0.2F + 0.8F);
         }
-    }
-
-    static boolean isOccluded(Level level, Vec3 from, Vec3 to) {
-        from = new Vec3((double) Mth.floor(from.x) + 0.5, (double) Mth.floor(from.y) + 0.5, (double) Mth.floor(from.z) + 0.5);
-        to = new Vec3((double) Mth.floor(to.x) + 0.5, (double) Mth.floor(to.y) + 0.5, (double) Mth.floor(to.z) + 0.5);
-
-        for (Direction direction : Direction.values()) {
-            Vec3 vec3 = from.relative(direction, 9.999999747378752E-6);
-            if (level.isBlockInLine(new ClipBlockStateContext(vec3, to, (blockState) -> {
-                return blockState.is(BlockTags.OCCLUDES_VIBRATION_SIGNALS);
-            })).getType() != HitResult.Type.BLOCK) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     @Override
@@ -140,7 +115,9 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     public void acceptExperience(int amount) {
         int lastExperience = this.experience;
         this.experience = Mth.clamp(this.experience + amount, 0, MAX_EXPERIENCE);
-        if (this.experience != lastExperience) this.setChanged();
+        if (this.experience != lastExperience) {
+            this.setChanged();
+        }
     }
 
     public void extractExperienceBottle() {
@@ -155,24 +132,15 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
             ContainerHelper.loadAllItems(tag, this.getItems());
         }
         this.experience = tag.getInt(TAG_EXPERIENCE);
-        if (tag.contains("listener", 10)) {
-            VibrationSystem.Data.CODEC.parse(new Dynamic<>(NbtOps.INSTANCE, tag.getCompound("listener"))).resultOrPartial(EchoChest.LOGGER::error).ifPresent((data) -> {
-                this.vibrationData = data;
-            });
-        }
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
-        tag.remove("Items");
         if (!this.trySaveLootTable(tag)) {
             ContainerHelper.saveAllItems(tag, this.getItems(), true);
         }
         tag.putInt(TAG_EXPERIENCE, this.experience);
-        VibrationSystem.Data.CODEC.encodeStart(NbtOps.INSTANCE, this.vibrationData).resultOrPartial(EchoChest.LOGGER::error).ifPresent((data) -> {
-            tag.put("listener", data);
-        });
     }
 
     @Override
@@ -223,17 +191,7 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     }
 
     @Override
-    public EchoChestListener getListener() {
+    public GameEventListener getListener() {
         return this.listener;
-    }
-
-    @Override
-    public User getVibrationUser() {
-        return this.user;
-    }
-
-    @Override
-    public Data getVibrationData() {
-        return this.vibrationData;
     }
 }
