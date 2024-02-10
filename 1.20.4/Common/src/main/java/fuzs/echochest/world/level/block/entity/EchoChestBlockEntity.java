@@ -83,13 +83,19 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
         this.vibrationData = new VibrationSystem.Data();
     }
 
-    public static void serverTick(Level level, BlockPos pos, BlockState state, EchoChestBlockEntity blockEntity) {
-        if (blockEntity.experience >= EXPERIENCE_PER_BOTTLE) {
-            if (EchoChestMenu.validBottleItem(blockEntity.getItem(0)) && HopperBlockEntity.addItem(null, blockEntity, new ItemStack(Items.EXPERIENCE_BOTTLE), null).isEmpty()) {
-                blockEntity.extractExperienceBottle();
-                ItemStack stack = blockEntity.getItem(0).copy();
+    @Override
+    public void clientTick() {
+        lidAnimateTick(this.getLevel(), this.getBlockPos(), this.getBlockState(), this);
+    }
+
+    @Override
+    public void serverTick() {
+        if (this.experience >= EXPERIENCE_PER_BOTTLE) {
+            if (EchoChestMenu.validBottleItem(this.getItem(0)) && HopperBlockEntity.addItem(null, this, new ItemStack(Items.EXPERIENCE_BOTTLE), null).isEmpty()) {
+                this.extractExperienceBottle();
+                ItemStack stack = this.getItem(0).copy();
                 stack.shrink(1);
-                blockEntity.setItem(0, stack);
+                this.setItem(0, stack);
             }
         }
     }
@@ -229,15 +235,5 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     @Override
     public Data getVibrationData() {
         return this.vibrationData;
-    }
-
-    @Override
-    public void clientTick() {
-        lidAnimateTick(this.getLevel(), this.getBlockPos(), this.getBlockState(), this);
-    }
-
-    @Override
-    public void serverTick() {
-        serverTick(this.getLevel(), this.getBlockPos(), this.getBlockState(), this);
     }
 }

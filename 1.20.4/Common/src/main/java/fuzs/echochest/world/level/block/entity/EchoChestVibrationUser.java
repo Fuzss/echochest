@@ -41,7 +41,7 @@ record EchoChestVibrationUser(EchoChestBlockEntity blockEntity,
 
     @Override
     public void onReceiveVibration(ServerLevel level, BlockPos sourcePos, GameEvent gameEvent, @Nullable Entity sourceEntity, @Nullable Entity projectileOwner, float distance) {
-
+        // NO-OP
     }
 
     @Override
