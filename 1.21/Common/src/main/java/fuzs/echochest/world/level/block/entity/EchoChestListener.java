@@ -1,12 +1,15 @@
 package fuzs.echochest.world.level.block.entity;
 
 import fuzs.echochest.init.ModRegistry;
+import net.minecraft.Optionull;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.VibrationParticleOption;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.GameEventTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -40,7 +43,7 @@ final class EchoChestListener implements GameEventListener {
     }
 
     @Override
-    public boolean handleGameEvent(ServerLevel level, GameEvent gameEvent, GameEvent.Context context, Vec3 pos) {
+    public boolean handleGameEvent(ServerLevel level, Holder<GameEvent> gameEvent, GameEvent.Context context, Vec3 pos) {
         if (this.isValidVibration(gameEvent, context)) {
             Optional<Vec3> optional = this.getListenerSource().getPosition(level);
             if (optional.isPresent()) {
@@ -63,7 +66,7 @@ final class EchoChestListener implements GameEventListener {
         return false;
     }
 
-    public boolean isValidVibration(GameEvent gameEvent, GameEvent.Context context) {
+    public boolean isValidVibration(Holder<GameEvent> gameEvent, GameEvent.Context context) {
         if (!gameEvent.is(ModRegistry.ECHO_CHEST_CAN_LISTEN)) {
             return false;
         } else {
@@ -93,11 +96,12 @@ final class EchoChestListener implements GameEventListener {
         }
     }
 
-    public boolean canReceiveVibration(ServerLevel level, BlockPos pos, GameEvent gameEvent, GameEvent.Context context) {
-        if (gameEvent == GameEvent.ENTITY_DIE) {
+    public boolean canReceiveVibration(ServerLevel level, BlockPos pos, Holder<GameEvent> gameEvent, GameEvent.Context context) {
+        if (gameEvent.is(GameEvent.ENTITY_DIE)) {
             if (context.sourceEntity() instanceof LivingEntity livingEntity) {
                 if (this.blockEntity.canAcceptExperience() && !livingEntity.wasExperienceConsumed()) {
-                    int experienceReward = livingEntity.getExperienceReward();
+                    DamageSource damageSource = livingEntity.getLastDamageSource();
+                    int experienceReward = livingEntity.getExperienceReward(level, Optionull.map(damageSource, DamageSource::getEntity));
                     if (livingEntity.shouldDropExperience() && experienceReward > 0) {
                         this.blockEntity.acceptExperience(experienceReward);
                     }

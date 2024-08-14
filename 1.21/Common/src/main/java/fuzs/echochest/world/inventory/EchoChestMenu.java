@@ -2,6 +2,7 @@ package fuzs.echochest.world.inventory;
 
 import fuzs.echochest.init.ModRegistry;
 import fuzs.echochest.world.level.block.entity.EchoChestBlockEntity;
+import fuzs.puzzleslib.api.container.v1.ContainerMenuHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -27,11 +28,12 @@ public class EchoChestMenu extends AbstractContainerMenu {
         this.container = container;
         this.containerData = containerData;
         container.startOpen(inventory.player);
-        this.addSlots(inventory);
+        this.addContainerSlots();
+        ContainerMenuHelper.addInventorySlots(this, inventory, 118);
         this.addDataSlots(containerData);
     }
 
-    private void addSlots(Inventory inventory) {
+    private void addContainerSlots() {
         this.addSlot(new Slot(this.container, 0, 19, 73) {
 
             @Override
@@ -40,20 +42,10 @@ public class EchoChestMenu extends AbstractContainerMenu {
             }
         });
 
-        for (int l = 0; l < 4; ++l) {
-            for (int m = 0; m < 6; ++m) {
-                this.addSlot(new Slot(this.container, m + l * 6 + 1, 51 + m * 18, 24 + l * 18));
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 6; ++j) {
+                this.addSlot(new Slot(this.container, j + i * 6 + 1, 51 + j * 18, 24 + i * 18));
             }
-        }
-
-        for (int l = 0; l < 3; ++l) {
-            for (int m = 0; m < 9; ++m) {
-                this.addSlot(new Slot(inventory, m + l * 9 + 9, 8 + m * 18, 118 + l * 18));
-            }
-        }
-
-        for (int l = 0; l < 9; ++l) {
-            this.addSlot(new Slot(inventory, l, 8 + l * 18, 176));
         }
     }
 
@@ -66,7 +58,7 @@ public class EchoChestMenu extends AbstractContainerMenu {
     public ItemStack quickMoveStack(Player player, int index) {
         ItemStack itemStack = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
-        if (slot != null && slot.hasItem()) {
+        if (slot.hasItem()) {
             ItemStack itemStack2 = slot.getItem();
             itemStack = itemStack2.copy();
             if (index < EchoChestBlockEntity.CONTAINER_SIZE) {

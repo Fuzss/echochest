@@ -18,6 +18,7 @@
     "#+#"
   ],
   "result": {
-    "item": "echochest:echo_chest"
+    "count": 1,
+    "id": "echochest:echo_chest"
   }
 }

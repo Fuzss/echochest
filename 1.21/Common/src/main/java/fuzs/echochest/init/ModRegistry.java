@@ -29,6 +29,6 @@ public class ModRegistry {
     public static final TagKey<GameEvent> ECHO_CHEST_CAN_LISTEN = TAGS.registerGameEventTag("echo_chest_can_listen");
 
     public static void touch() {
-
+        // NO-OP
     }
 }

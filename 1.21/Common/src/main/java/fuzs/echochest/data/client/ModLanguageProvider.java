@@ -16,6 +16,6 @@ public class ModLanguageProvider extends AbstractLanguageProvider {
     public void addTranslations(TranslationBuilder builder) {
         builder.add(ModRegistry.ECHO_CHEST_BLOCK.value(), "Echo Chest");
         builder.add(EchoChestBlockEntity.CONTAINER_ECHO_CHEST, "Echo Chest");
-        builder.add(EchoChestBlock.DESCRIPTION_COMPONENT, "Collects items and experience from mobs dropped nearby in a radius of 8 blocks.");
+        builder.add(((EchoChestBlock) ModRegistry.ECHO_CHEST_BLOCK.value()).getDescriptionComponent(), "Collects items and experience from mobs dropped nearby in a radius of 8 blocks.");
     }
 }

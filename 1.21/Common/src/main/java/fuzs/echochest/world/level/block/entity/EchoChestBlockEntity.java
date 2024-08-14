@@ -6,6 +6,7 @@ import fuzs.echochest.world.inventory.EchoChestMenu;
 import fuzs.puzzleslib.api.block.v1.entity.TickingBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.IntStream;
 
-public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyContainer, GameEventListener.Holder<GameEventListener>, TickingBlockEntity {
+public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyContainer, GameEventListener.Provider<GameEventListener>, TickingBlockEntity {
     public static final String TAG_EXPERIENCE = EchoChest.id("experience").toString();
     public static final MutableComponent CONTAINER_ECHO_CHEST = Component.translatable("container.echo_chest");
     public static final int CONTAINER_SIZE = 25;
@@ -125,20 +126,20 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         this.setItems(NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY));
         if (!this.tryLoadLootTable(tag)) {
-            ContainerHelper.loadAllItems(tag, this.getItems());
+            ContainerHelper.loadAllItems(tag, this.getItems(), registries);
         }
         this.experience = tag.getInt(TAG_EXPERIENCE);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         if (!this.trySaveLootTable(tag)) {
-            ContainerHelper.saveAllItems(tag, this.getItems(), true);
+            ContainerHelper.saveAllItems(tag, this.getItems(), true, registries);
         }
         tag.putInt(TAG_EXPERIENCE, this.experience);
     }

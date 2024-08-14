@@ -20,11 +20,6 @@ abstract class SheetsMixin {
     @Unique
     private static final Material ECHOCHEST$ECHO_CHEST_LOCATION = new Material(Sheets.CHEST_SHEET, EchoChest.id("entity/chest/echo"));
 
-    @Inject(method = "getAllMaterials", at = @At("TAIL"))
-    private static void getAllMaterials(Consumer<Material> materialConsumer, CallbackInfo callback) {
-        materialConsumer.accept(ECHOCHEST$ECHO_CHEST_LOCATION);
-    }
-
     @Inject(method = "chooseMaterial", at = @At("HEAD"), cancellable = true)
     private static void chooseMaterial(BlockEntity blockEntity, ChestType chestType, boolean holiday, CallbackInfoReturnable<Material> callback) {
         if (blockEntity instanceof EchoChestBlockEntity) callback.setReturnValue(ECHOCHEST$ECHO_CHEST_LOCATION);

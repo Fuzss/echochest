@@ -1,26 +1,25 @@
 package fuzs.echochest.world.level.block;
 
-import fuzs.echochest.EchoChest;
 import fuzs.echochest.init.ModRegistry;
 import fuzs.echochest.world.level.block.entity.EchoChestBlockEntity;
+import fuzs.puzzleslib.api.block.v1.entity.BlockEntityHelper;
 import fuzs.puzzleslib.api.block.v1.entity.TickingEntityBlock;
+import fuzs.puzzleslib.api.core.v1.Proxy;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EnderChestBlock;
@@ -38,9 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-@SuppressWarnings("deprecation")
 public class EchoChestBlock extends EnderChestBlock implements TickingEntityBlock<EchoChestBlockEntity> {
-    public static final Component DESCRIPTION_COMPONENT = Component.translatable(Util.makeDescriptionId("block", EchoChest.id("echo_chest.description"))).withStyle(ChatFormatting.GOLD);
     public static final EnumProperty<ChestType> TYPE = BlockStateProperties.CHEST_TYPE;
 
     public EchoChestBlock(Properties properties) {
@@ -51,12 +48,7 @@ public class EchoChestBlock extends EnderChestBlock implements TickingEntityBloc
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-        if (stack.hasCustomHoverName()) {
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof ChestBlockEntity) {
-                ((ChestBlockEntity) blockEntity).setCustomName(stack.getHoverName());
-            }
-        }
+        BlockEntityHelper.setCustomName(stack, level, pos, EchoChestBlockEntity.class);
     }
 
     @Override
@@ -72,7 +64,7 @@ public class EchoChestBlock extends EnderChestBlock implements TickingEntityBloc
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         BlockPos above = pos.above();
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
@@ -125,8 +117,12 @@ public class EchoChestBlock extends EnderChestBlock implements TickingEntityBloc
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(DESCRIPTION_COMPONENT);
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        tooltipComponents.addAll(Proxy.INSTANCE.splitTooltipLines(this.getDescriptionComponent()));
+    }
+
+    public Component getDescriptionComponent() {
+        return Component.translatable(this.getDescriptionId() + ".description").withStyle(ChatFormatting.GOLD);
     }
 
     @Override

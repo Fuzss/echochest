@@ -25,7 +25,7 @@ abstract class ItemEntityMixin extends Entity {
     public void tick(CallbackInfo callback) {
         if (!this.isRemoved() && !this.level().isClientSide) {
             if (--this.echochest$tickCooldown == 0) {
-                this.gameEvent(ModRegistry.ITEM_TICK_GAME_EVENT.value());
+                this.gameEvent(ModRegistry.ITEM_TICK_GAME_EVENT);
                 // add randomness, since only a single game event seems to be processed per listener per tick
                 this.echochest$tickCooldown = 30 + this.random.nextInt(20);
             }
