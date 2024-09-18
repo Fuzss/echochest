@@ -2,7 +2,6 @@ package fuzs.echochest.world.level.block;
 
 import fuzs.echochest.init.ModRegistry;
 import fuzs.echochest.world.level.block.entity.EchoChestBlockEntity;
-import fuzs.puzzleslib.api.block.v1.entity.BlockEntityHelper;
 import fuzs.puzzleslib.api.block.v1.entity.TickingEntityBlock;
 import fuzs.puzzleslib.api.core.v1.Proxy;
 import net.minecraft.ChatFormatting;
@@ -13,7 +12,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -44,11 +42,6 @@ public class EchoChestBlock extends EnderChestBlock implements TickingEntityBloc
         super(properties);
         // add this as Fabric Api assumes instances of ChestBlockEntity have it, maybe other mods will, too
         this.registerDefaultState(this.defaultBlockState().setValue(TYPE, ChestType.SINGLE));
-    }
-
-    @Override
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-        BlockEntityHelper.setCustomName(stack, level, pos, EchoChestBlockEntity.class);
     }
 
     @Override
