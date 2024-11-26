@@ -17,7 +17,7 @@ public class ModRecipeProvider extends AbstractRecipeProvider {
 
     @Override
     public void addRecipes(RecipeOutput recipeOutput) {
-        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ModRegistry.ECHO_CHEST_BLOCK.value())
+        ShapedRecipeBuilder.shaped(this.items(), RecipeCategory.DECORATIONS, ModRegistry.ECHO_CHEST_BLOCK.value())
                 .define('#', Blocks.DEEPSLATE)
                 .define('+', Blocks.DEEPSLATE_BRICKS)
                 .define('@', Items.ECHO_SHARD)

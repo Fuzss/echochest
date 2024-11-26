@@ -4,6 +4,7 @@ import fuzs.echochest.init.ModRegistry;
 import fuzs.echochest.world.level.block.entity.EchoChestBlockEntity;
 import fuzs.puzzleslib.api.block.v1.entity.TickingEntityBlock;
 import fuzs.puzzleslib.api.core.v1.Proxy;
+import fuzs.puzzleslib.api.util.v1.InteractionResultHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -64,11 +65,12 @@ public class EchoChestBlock extends EnderChestBlock implements TickingEntityBloc
         } else if (!level.getBlockState(above).isRedstoneConductor(level, above)) {
             if (level.getBlockEntity(pos) instanceof EchoChestBlockEntity blockEntity) {
                 player.openMenu(blockEntity);
-                PiglinAi.angerNearbyPiglins(player, true);
+                PiglinAi.angerNearbyPiglins((ServerLevel) level, player, true);
             }
             return InteractionResult.CONSUME;
+        } else {
+            return InteractionResultHelper.sidedSuccess(level.isClientSide);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Override

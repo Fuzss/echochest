@@ -15,7 +15,7 @@ public class ModGameEventTagsProvider extends AbstractTagProvider<GameEvent> {
 
     @Override
     public void addTags(HolderLookup.Provider provider) {
-        this.add(ModRegistry.ECHO_CHEST_CAN_LISTEN)
+        this.add(ModRegistry.ECHO_CHEST_CAN_LISTEN_GAME_EVENT_TAG)
                 .add(GameEvent.ENTITY_DIE, GameEvent.HIT_GROUND, ModRegistry.ITEM_TICK_GAME_EVENT);
     }
 }

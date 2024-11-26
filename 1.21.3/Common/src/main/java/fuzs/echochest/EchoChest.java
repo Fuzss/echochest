@@ -16,7 +16,7 @@ public class EchoChest implements ModConstructor {
 
     @Override
     public void onConstructMod() {
-        ModRegistry.touch();
+        ModRegistry.bootstrap();
     }
 
     @Override

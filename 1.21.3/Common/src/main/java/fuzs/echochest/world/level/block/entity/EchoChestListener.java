@@ -67,7 +67,7 @@ final class EchoChestListener implements GameEventListener {
     }
 
     public boolean isValidVibration(Holder<GameEvent> gameEvent, GameEvent.Context context) {
-        if (!gameEvent.is(ModRegistry.ECHO_CHEST_CAN_LISTEN)) {
+        if (!gameEvent.is(ModRegistry.ECHO_CHEST_CAN_LISTEN_GAME_EVENT_TAG)) {
             return false;
         } else {
             Entity entity = context.sourceEntity();
