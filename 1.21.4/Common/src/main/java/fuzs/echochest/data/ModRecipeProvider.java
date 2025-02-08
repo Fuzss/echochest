@@ -24,7 +24,7 @@ public class ModRecipeProvider extends AbstractRecipeProvider {
                 .pattern("#+#")
                 .pattern("+@+")
                 .pattern("#+#")
-                .unlockedBy(getHasName(Items.ECHO_SHARD), has(Items.ECHO_SHARD))
+                .unlockedBy(getHasName(Items.ECHO_SHARD), this.has(Items.ECHO_SHARD))
                 .save(recipeOutput);
     }
 }

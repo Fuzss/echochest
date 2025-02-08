@@ -7,7 +7,6 @@
     "ItemEntityMixin"
   ],
   "client": [
-    "client.SheetsMixin"
   ],
   "injectors": {
     "defaultRequire": 1
