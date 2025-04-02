@@ -3,22 +3,17 @@ package fuzs.echochest.world.level.block;
 import fuzs.echochest.init.ModRegistry;
 import fuzs.echochest.world.level.block.entity.EchoChestBlockEntity;
 import fuzs.puzzleslib.api.block.v1.entity.TickingEntityBlock;
-import fuzs.puzzleslib.api.core.v1.Proxy;
 import fuzs.puzzleslib.api.util.v1.InteractionResultHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EnderChestBlock;
@@ -34,8 +29,6 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 public class EchoChestBlock extends EnderChestBlock implements TickingEntityBlock<EchoChestBlockEntity> {
     public static final EnumProperty<ChestType> TYPE = BlockStateProperties.CHEST_TYPE;
 
@@ -46,15 +39,8 @@ public class EchoChestBlock extends EnderChestBlock implements TickingEntityBloc
     }
 
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!state.is(newState.getBlock())) {
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof Container) {
-                Containers.dropContents(level, pos, (Container) blockEntity);
-                level.updateNeighbourForOutputSignal(pos, this);
-            }
-            super.onRemove(state, level, pos, newState, isMoving);
-        }
+    protected void affectNeighborsAfterRemoval(BlockState blockState, ServerLevel serverLevel, BlockPos blockPos, boolean isMoving) {
+        Containers.updateNeighboursAfterDestroy(blockState, serverLevel, blockPos);
     }
 
     @Override
@@ -109,11 +95,6 @@ public class EchoChestBlock extends EnderChestBlock implements TickingEntityBloc
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         // NO-OP
-    }
-
-    @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.addAll(Proxy.INSTANCE.splitTooltipLines(this.getDescriptionComponent()));
     }
 
     public Component getDescriptionComponent() {

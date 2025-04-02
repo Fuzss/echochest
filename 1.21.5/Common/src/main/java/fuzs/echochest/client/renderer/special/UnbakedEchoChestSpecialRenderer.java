@@ -32,7 +32,7 @@ public record UnbakedEchoChestSpecialRenderer(ResourceLocation texture,
         // we have to use the bake our own model layer, as the echo chest does not have a lock model part like other chests
         // using the vanilla model will render the lock black, since a solid render type is used, not cutout
         ChestModel chestModel = new ChestModel(modelSet.bakeLayer(EchoChestRenderer.ECHO_CHEST_MODEL_LAYER_LOCATION));
-        Material material = Sheets.chestMaterial(this.texture);
+        Material material = Sheets.CHEST_MAPPER.apply(this.texture);
         return new ChestSpecialRenderer(chestModel, material, this.openness);
     }
 }

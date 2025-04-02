@@ -18,10 +18,10 @@ public class EchoChest implements ModConstructor {
     @Override
     public void onConstructMod() {
         ModRegistry.bootstrap();
-        registerEventHandlers();
+        registerLoadingHandlers();
     }
 
-    private static void registerEventHandlers() {
+    private static void registerLoadingHandlers() {
         BuildCreativeModeTabContentsCallback.buildCreativeModeTabContents(CreativeModeTabs.FUNCTIONAL_BLOCKS)
                 .register((CreativeModeTab creativeModeTab, CreativeModeTab.ItemDisplayParameters itemDisplayParameters, CreativeModeTab.Output output) -> {
                     output.accept(ModRegistry.ECHO_CHEST_ITEM.value());

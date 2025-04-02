@@ -17,7 +17,7 @@ public class EchoChestRenderer extends SingleChestRenderer<EchoChestBlockEntity,
     public static final ModelLayerLocation ECHO_CHEST_MODEL_LAYER_LOCATION = MODEL_LAYERS.registerModelLayer(
             "echo_chest");
     public static final ResourceLocation ECHO_CHEST_TEXTURE = EchoChest.id("echo");
-    private static final Material ECHO_CHEST_LOCATION = Sheets.chestMaterial(ECHO_CHEST_TEXTURE);
+    private static final Material ECHO_CHEST_LOCATION = Sheets.CHEST_MAPPER.apply(ECHO_CHEST_TEXTURE);
 
     public EchoChestRenderer(BlockEntityRendererProvider.Context context) {
         super(context, new ChestModel(context.bakeLayer(ECHO_CHEST_MODEL_LAYER_LOCATION)));

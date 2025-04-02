@@ -132,7 +132,7 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
         if (!this.tryLoadLootTable(tag)) {
             ContainerHelper.loadAllItems(tag, this.getItems(), registries);
         }
-        this.experience = tag.getInt(TAG_EXPERIENCE);
+        this.experience = tag.getIntOr(TAG_EXPERIENCE, 0);
     }
 
     @Override
