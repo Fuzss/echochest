@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "echochest:block/echo_chest"
+    }
+  }
+}
