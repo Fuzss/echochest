@@ -1,4 +1,4 @@
-package fuzs.echochest.data;
+package fuzs.echochest.data.tags;
 
 import fuzs.echochest.init.ModRegistry;
 import fuzs.puzzleslib.api.data.v2.core.DataProviderContext;
