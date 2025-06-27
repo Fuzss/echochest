@@ -1,13 +1,12 @@
 package fuzs.echochest.client.gui.screens.inventory;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import fuzs.echochest.EchoChest;
 import fuzs.echochest.world.inventory.EchoChestMenu;
 import fuzs.echochest.world.level.block.entity.EchoChestBlockEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -20,17 +19,17 @@ public class EchoChestScreen extends AbstractContainerScreen<EchoChestMenu> {
         super(chestMenu, inventory, component);
         this.imageHeight = 200;
         this.titleLabelY = 7;
-        this.inventoryLabelY = this.imageHeight - 94;
+        this.inventoryLabelY = this.imageHeight - 93;
     }
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0xCFCFCF, false);
+        guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0xFFCFCFCF, false);
         guiGraphics.drawString(this.font,
                 this.playerInventoryTitle,
                 this.inventoryLabelX,
                 this.inventoryLabelY,
-                4210752,
+                0xFF404040,
                 false);
     }
 
@@ -38,7 +37,7 @@ public class EchoChestScreen extends AbstractContainerScreen<EchoChestMenu> {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         if (this.isHovering(21, 29, 12, 40, mouseX, mouseY)) {
-            guiGraphics.renderTooltip(this.font,
+            guiGraphics.setTooltipForNextFrame(this.font,
                     Component.literal(
                                     (int) (this.menu.getExperience() / EchoChestBlockEntity.EXPERIENCE_PER_BOTTLE) + "x ")
                             .append(Items.EXPERIENCE_BOTTLE.getName())
@@ -52,8 +51,7 @@ public class EchoChestScreen extends AbstractContainerScreen<EchoChestMenu> {
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        guiGraphics.blit(RenderType::guiTextured,
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED,
                 CONTAINER_BACKGROUND,
                 this.leftPos,
                 this.topPos,
@@ -64,7 +62,7 @@ public class EchoChestScreen extends AbstractContainerScreen<EchoChestMenu> {
                 256,
                 256);
         int height = (int) (this.menu.getExperience() / (float) EchoChestBlockEntity.MAX_EXPERIENCE * 40.0F);
-        guiGraphics.blit(RenderType::guiTextured,
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED,
                 CONTAINER_BACKGROUND,
                 this.leftPos + 21,
                 this.topPos + 29 + 40 - height,

@@ -6,9 +6,7 @@ import fuzs.echochest.world.inventory.EchoChestMenu;
 import fuzs.puzzleslib.api.block.v1.entity.TickingBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.sounds.SoundEvents;
@@ -27,6 +25,8 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEventListener;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.IntStream;
@@ -81,7 +81,10 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     @Override
     public void serverTick() {
         if (this.experience >= EXPERIENCE_PER_BOTTLE) {
-            if (EchoChestMenu.validBottleItem(this.getItem(0)) && HopperBlockEntity.addItem(null, this, new ItemStack(Items.EXPERIENCE_BOTTLE), null).isEmpty()) {
+            if (EchoChestMenu.validBottleItem(this.getItem(0)) && HopperBlockEntity.addItem(null,
+                    this,
+                    new ItemStack(Items.EXPERIENCE_BOTTLE),
+                    null).isEmpty()) {
                 this.extractExperienceBottle();
                 ItemStack stack = this.getItem(0).copy();
                 stack.shrink(1);
@@ -94,8 +97,14 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
         this.openersCounter.incrementOpeners(null, this.getLevel(), this.getBlockPos(), this.getBlockState());
         if (!this.getBlockState().getValue(EnderChestBlock.WATERLOGGED)) {
             this.getLevel()
-                    .playSound(null, this.getBlockPos().getX() + 0.5, this.getBlockPos().getY() + 0.5, this.getBlockPos()
-                            .getZ() + 0.5, SoundEvents.DEEPSLATE_BRICKS_BREAK, SoundSource.BLOCKS, 1.0F, this.getLevel().random.nextFloat() * 0.2F + 0.8F);
+                    .playSound(null,
+                            this.getBlockPos().getX() + 0.5,
+                            this.getBlockPos().getY() + 0.5,
+                            this.getBlockPos().getZ() + 0.5,
+                            SoundEvents.DEEPSLATE_BRICKS_BREAK,
+                            SoundSource.BLOCKS,
+                            1.0F,
+                            this.getLevel().random.nextFloat() * 0.2F + 0.8F);
         }
     }
 
@@ -126,22 +135,22 @@ public class EchoChestBlockEntity extends ChestBlockEntity implements WorldlyCon
     }
 
     @Override
-    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput valueInput) {
+        super.loadAdditional(valueInput);
         this.setItems(NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY));
-        if (!this.tryLoadLootTable(tag)) {
-            ContainerHelper.loadAllItems(tag, this.getItems(), registries);
+        if (!this.tryLoadLootTable(valueInput)) {
+            ContainerHelper.loadAllItems(valueInput, this.getItems());
         }
-        this.experience = tag.getIntOr(TAG_EXPERIENCE, 0);
+        this.experience = valueInput.getIntOr(TAG_EXPERIENCE, 0);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        if (!this.trySaveLootTable(tag)) {
-            ContainerHelper.saveAllItems(tag, this.getItems(), true, registries);
+    protected void saveAdditional(ValueOutput valueOutput) {
+        super.saveAdditional(valueOutput);
+        if (!this.trySaveLootTable(valueOutput)) {
+            ContainerHelper.saveAllItems(valueOutput, this.getItems(), true);
         }
-        tag.putInt(TAG_EXPERIENCE, this.experience);
+        valueOutput.putInt(TAG_EXPERIENCE, this.experience);
     }
 
     @Override

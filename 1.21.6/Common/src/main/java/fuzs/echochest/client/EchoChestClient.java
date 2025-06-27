@@ -4,19 +4,18 @@ import fuzs.echochest.EchoChest;
 import fuzs.echochest.client.gui.screens.inventory.EchoChestScreen;
 import fuzs.echochest.client.renderer.blockentity.EchoChestRenderer;
 import fuzs.echochest.client.renderer.special.UnbakedEchoChestSpecialRenderer;
-import fuzs.echochest.client.util.ItemTooltipRegistry;
 import fuzs.echochest.init.ModRegistry;
 import fuzs.echochest.world.level.block.EchoChestBlock;
 import fuzs.puzzleslib.api.client.core.v1.ClientModConstructor;
 import fuzs.puzzleslib.api.client.core.v1.context.*;
+import fuzs.puzzleslib.api.client.gui.v2.tooltip.ItemTooltipRegistry;
 import net.minecraft.client.renderer.special.ChestSpecialRenderer;
-import net.minecraft.world.item.Items;
 
 public class EchoChestClient implements ClientModConstructor {
 
     @Override
     public void onClientSetup() {
-        ItemTooltipRegistry.registerItemTooltip(EchoChestBlock.class, EchoChestBlock::getDescriptionComponent);
+        ItemTooltipRegistry.BLOCK.registerItemTooltip(EchoChestBlock.class, EchoChestBlock::getDescriptionComponent);
     }
 
     @Override

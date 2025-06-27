@@ -31,7 +31,7 @@ public class ModRegistry {
             () -> Collections.singleton(ECHO_CHEST_BLOCK.value()));
     public static final Holder.Reference<MenuType<EchoChestMenu>> ECHO_CHEST_MENU_TYPE = REGISTRIES.registerMenuType(
             "echo_chest",
-            () -> EchoChestMenu::new);
+            EchoChestMenu::new);
     public static final Holder.Reference<GameEvent> ITEM_TICK_GAME_EVENT = REGISTRIES.registerGameEvent("item_tick", 8);
 
     static final TagFactory TAGS = TagFactory.make(EchoChest.MOD_ID);
