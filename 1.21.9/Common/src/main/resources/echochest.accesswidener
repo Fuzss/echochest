@@ -1,0 +1,2 @@
+accessWidener   v2  named
+accessible  method  net/minecraft/world/level/gameevent/vibrations/VibrationSystem$Listener isOccluded  (Lnet/minecraft/world/level/Level;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;)Z
