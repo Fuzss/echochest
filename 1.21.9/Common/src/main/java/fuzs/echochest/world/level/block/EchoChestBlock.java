@@ -6,6 +6,7 @@ import fuzs.puzzleslib.api.block.v1.entity.TickingEntityBlock;
 import fuzs.puzzleslib.api.util.v1.InteractionResultHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -46,7 +47,7 @@ public class EchoChestBlock extends EnderChestBlock implements TickingEntityBloc
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         BlockPos above = pos.above();
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         } else if (!level.getBlockState(above).isRedstoneConductor(level, above)) {
             if (level.getBlockEntity(pos) instanceof EchoChestBlockEntity blockEntity) {
@@ -55,7 +56,7 @@ public class EchoChestBlock extends EnderChestBlock implements TickingEntityBloc
             }
             return InteractionResult.CONSUME;
         } else {
-            return InteractionResultHelper.sidedSuccess(level.isClientSide);
+            return InteractionResultHelper.sidedSuccess(level.isClientSide());
         }
     }
 
@@ -81,8 +82,8 @@ public class EchoChestBlock extends EnderChestBlock implements TickingEntityBloc
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
-        return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(level.getBlockEntity(pos));
+    public int getAnalogOutputSignal(BlockState blockState, Level level, BlockPos blockPos, Direction direction) {
+        return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(level.getBlockEntity(blockPos));
     }
 
     @Override

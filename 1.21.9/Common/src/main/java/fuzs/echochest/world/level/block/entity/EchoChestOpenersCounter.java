@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,11 +23,25 @@ class EchoChestOpenersCounter {
     }
 
     protected void onOpen(Level level, BlockPos pos, BlockState state) {
-        level.playSound(null, (double) pos.getX() + 0.5, (double) pos.getY() + 0.5, (double) pos.getZ() + 0.5, SoundEvents.CHEST_OPEN, SoundSource.BLOCKS, 0.5F, level.random.nextFloat() * 0.1F + 0.9F);
+        level.playSound(null,
+                (double) pos.getX() + 0.5,
+                (double) pos.getY() + 0.5,
+                (double) pos.getZ() + 0.5,
+                SoundEvents.CHEST_OPEN,
+                SoundSource.BLOCKS,
+                0.5F,
+                level.random.nextFloat() * 0.1F + 0.9F);
     }
 
     protected void onClose(Level level, BlockPos pos, BlockState state) {
-        level.playSound(null, (double) pos.getX() + 0.5, (double) pos.getY() + 0.5, (double) pos.getZ() + 0.5, SoundEvents.CHEST_CLOSE, SoundSource.BLOCKS, 0.5F, level.random.nextFloat() * 0.1F + 0.9F);
+        level.playSound(null,
+                (double) pos.getX() + 0.5,
+                (double) pos.getY() + 0.5,
+                (double) pos.getZ() + 0.5,
+                SoundEvents.CHEST_CLOSE,
+                SoundSource.BLOCKS,
+                0.5F,
+                level.random.nextFloat() * 0.1F + 0.9F);
     }
 
     protected void openerCountChanged(Level level, BlockPos pos, BlockState state, int count, int openCount) {
@@ -42,24 +57,25 @@ class EchoChestOpenersCounter {
         }
     }
 
-    public void incrementOpeners(@Nullable Player player, Level level, BlockPos pos, BlockState state) {
+    public void incrementOpeners(@Nullable LivingEntity livingEntity, Level level, BlockPos pos, BlockState state) {
         int i = this.openCount++;
         if (i == 0) {
-            if (player != null) {
+            if (livingEntity != null) {
                 this.onOpen(level, pos, state);
             }
-            level.gameEvent(player, GameEvent.CONTAINER_OPEN, pos);
-            scheduleRecheck(level, pos, state, player == null);
+
+            level.gameEvent(livingEntity, GameEvent.CONTAINER_OPEN, pos);
+            scheduleRecheck(level, pos, state, livingEntity == null);
         }
 
         this.openerCountChanged(level, pos, state, i, this.openCount);
     }
 
-    public void decrementOpeners(Player player, Level level, BlockPos pos, BlockState state) {
+    public void decrementOpeners(LivingEntity livingEntity, Level level, BlockPos pos, BlockState state) {
         int i = this.openCount--;
         if (this.openCount == 0) {
             this.onClose(level, pos, state);
-            level.gameEvent(player, GameEvent.CONTAINER_CLOSE, pos);
+            level.gameEvent(livingEntity, GameEvent.CONTAINER_CLOSE, pos);
         }
 
         this.openerCountChanged(level, pos, state, i, this.openCount);
@@ -70,7 +86,12 @@ class EchoChestOpenersCounter {
         int j = pos.getY();
         int k = pos.getZ();
         float f = 5.0F;
-        AABB aABB = new AABB((float)i - 5.0F, (float)j - 5.0F, (float)k - 5.0F, (float)(i + 1) + 5.0F, (float)(j + 1) + 5.0F, (float)(k + 1) + 5.0F);
+        AABB aABB = new AABB((float) i - 5.0F,
+                (float) j - 5.0F,
+                (float) k - 5.0F,
+                (float) (i + 1) + 5.0F,
+                (float) (j + 1) + 5.0F,
+                (float) (k + 1) + 5.0F);
         return level.getEntities(EntityTypeTest.forClass(Player.class), aABB, this::isOwnContainer).size();
     }
 

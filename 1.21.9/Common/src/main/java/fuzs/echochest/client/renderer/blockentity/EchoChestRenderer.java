@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.resources.ResourceLocation;
 
-public class EchoChestRenderer extends SingleChestRenderer<EchoChestBlockEntity, ChestModel> {
+public class EchoChestRenderer extends SingleChestRenderer<EchoChestBlockEntity, ChestModel, SingleChestRenderer.SingleChestRenderState> {
     static final ModelLayerFactory MODEL_LAYERS = ModelLayerFactory.from(EchoChest.MOD_ID);
     public static final ModelLayerLocation ECHO_CHEST_MODEL_LAYER_LOCATION = MODEL_LAYERS.registerModelLayer(
             "echo_chest");

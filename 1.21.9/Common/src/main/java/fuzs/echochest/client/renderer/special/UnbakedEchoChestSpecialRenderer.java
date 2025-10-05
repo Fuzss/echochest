@@ -3,7 +3,6 @@ package fuzs.echochest.client.renderer.special;
 import com.mojang.serialization.MapCodec;
 import fuzs.echochest.client.renderer.blockentity.EchoChestRenderer;
 import net.minecraft.client.model.ChestModel;
-import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.special.ChestSpecialRenderer;
 import net.minecraft.client.renderer.special.SpecialModelRenderer;
@@ -28,11 +27,12 @@ public record UnbakedEchoChestSpecialRenderer(ResourceLocation texture,
     }
 
     @Override
-    public SpecialModelRenderer<?> bake(EntityModelSet modelSet) {
+    public SpecialModelRenderer<?> bake(SpecialModelRenderer.BakingContext context) {
         // we have to use the bake our own model layer, as the echo chest does not have a lock model part like other chests
         // using the vanilla model will render the lock black, since a solid render type is used, not cutout
-        ChestModel chestModel = new ChestModel(modelSet.bakeLayer(EchoChestRenderer.ECHO_CHEST_MODEL_LAYER_LOCATION));
+        ChestModel chestModel = new ChestModel(context.entityModelSet()
+                .bakeLayer(EchoChestRenderer.ECHO_CHEST_MODEL_LAYER_LOCATION));
         Material material = Sheets.CHEST_MAPPER.apply(this.texture);
-        return new ChestSpecialRenderer(chestModel, material, this.openness);
+        return new ChestSpecialRenderer(context.materials(), chestModel, material, this.openness);
     }
 }
