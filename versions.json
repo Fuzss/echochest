@@ -6,11 +6,17 @@
     "26.1.x": "maintained",
     "26.2.x": "primary"
   },
-  "properties": {
-    "distributions.curseforge.id": "857972",
-    "distributions.curseforge.slug": "echo-chest",
-    "distributions.github.slug": "echo-chest",
-    "distributions.modrinth.id": "m3pkVbY8",
-    "distributions.modrinth.slug": "echo-chest"
+  "distributions": {
+    "curseforge": {
+      "id": "857972",
+      "slug": "echo-chest"
+    },
+    "github": {
+      "slug": "echo-chest"
+    },
+    "modrinth": {
+      "id": "m3pkVbY8",
+      "slug": "echo-chest"
+    }
   }
 }
